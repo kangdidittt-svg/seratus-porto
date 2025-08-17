@@ -85,25 +85,14 @@ export default function AdminLoginPage() {
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-primary-900 flex items-center justify-center">
-        <div className="loading-dots">
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-primary-900 flex items-center justify-center p-4">
-      {/* Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-primary-500/5 rounded-full floating-animation" />
-        <div className="absolute top-40 right-20 w-24 h-24 bg-primary-400/5 rounded-full floating-animation" style={{ animationDelay: '2s' }} />
-        <div className="absolute bottom-40 left-20 w-20 h-20 bg-primary-600/5 rounded-full floating-animation" style={{ animationDelay: '4s' }} />
-      </div>
+    <div className="min-h-screen flex items-center justify-center p-4">
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -113,40 +102,31 @@ export default function AdminLoginPage() {
       >
         {/* Header */}
         <div className="text-center mb-8">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="w-20 h-20 bg-primary-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-primary-500/30"
-          >
-            <Shield size={32} className="text-primary-400" />
-          </motion.div>
+          <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mx-auto mb-6">
+            <Shield size={28} className="text-white" />
+          </div>
           
-          <h1 className="text-3xl font-bold text-white mb-2">Admin Portal</h1>
-          <p className="text-dark-300">Secure access to dashboard</p>
+          <h1 className="text-3xl font-bold text-white mb-3">Admin Portal</h1>
+          <p className="text-white/70 text-base">Secure access to dashboard</p>
         </div>
 
         {/* Login Form */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="glass-effect rounded-2xl p-8"
-        >
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
+        
           <form onSubmit={handleLogin} className="space-y-6">
             {/* Username Field */}
             <div>
-              <label className="block text-sm font-medium text-dark-300 mb-2">
+              <label className="block text-sm font-medium text-white/80 mb-2">
                 Username
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-400" size={18} />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" size={18} />
                 <input
                   type="text"
                   required
                   value={loginForm.username}
                   onChange={(e) => setLoginForm(prev => ({ ...prev, username: e.target.value }))}
-                  className="w-full pl-10 pr-4 py-3 bg-dark-800 border border-dark-600 rounded-xl text-white placeholder-dark-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 transition-all duration-300"
                   placeholder="Enter your username"
                 />
               </div>
@@ -154,23 +134,23 @@ export default function AdminLoginPage() {
 
             {/* Password Field */}
             <div>
-              <label className="block text-sm font-medium text-dark-300 mb-2">
+              <label className="block text-sm font-medium text-white/80 mb-2">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-400" size={18} />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" size={18} />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={loginForm.password}
                   onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
-                  className="w-full pl-10 pr-12 py-3 bg-dark-800 border border-dark-600 rounded-xl text-white placeholder-dark-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 transition-all duration-300"
                   placeholder="Enter your password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-dark-400 hover:text-white transition-colors"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -195,15 +175,10 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-primary-500/50 text-white py-3 px-6 rounded-xl font-medium transition-all duration-200 flex items-center justify-center space-x-2 disabled:cursor-not-allowed"
+              className="w-full bg-white/20 hover:bg-white/30 disabled:bg-white/10 text-white py-3 px-6 rounded-lg font-medium transition-all duration-300 flex items-center justify-center space-x-2 disabled:cursor-not-allowed border border-white/30"
             >
               {loading ? (
-                <div className="loading-dots">
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                </div>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
               ) : (
                 <>
                   <LogIn size={18} />
@@ -214,27 +189,22 @@ export default function AdminLoginPage() {
           </form>
 
           {/* Footer */}
-          <div className="mt-6 pt-6 border-t border-dark-600">
-            <p className="text-center text-xs text-dark-400">
-              Protected area. Authorized personnel only.
+          <div className="mt-6 pt-6 border-t border-white/20">
+            <p className="text-center text-sm text-white/60">
+              🔒 Protected area. Authorized personnel only.
             </p>
           </div>
-        </motion.div>
+        </div>
 
         {/* Back to Home */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="text-center mt-6"
-        >
+        <div className="text-center mt-8">
           <button
             onClick={() => router.push('/')}
-            className="text-dark-400 hover:text-white transition-colors text-sm"
+            className="text-white/60 hover:text-white transition-all duration-300 text-sm bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg border border-white/20"
           >
             ← Back to Home
           </button>
-        </motion.div>
+        </div>
       </motion.div>
     </div>
   )

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, ShoppingCart, Download, Star, Tag, Calendar, Eye, ChevronLeft, ChevronRight, X, ExternalLink } from 'lucide-react'
+import { ArrowLeft, ShoppingCart, Download, Star, Tag, Calendar, Eye, ChevronLeft, ChevronRight, X, ExternalLink, Send, Upload, User, Mail, Phone, MapPin } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import Header from '@/components/Header'
@@ -41,6 +41,17 @@ export default function ProductDetailPage() {
   const [showImageModal, setShowImageModal] = useState(false)
   const [imageLoading, setImageLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
+  const [showOrderModal, setShowOrderModal] = useState(false)
+  const [orderForm, setOrderForm] = useState({
+    customer_name: '',
+    customer_email: '',
+    customer_phone: '',
+    customer_address: '',
+    payment_proof: null as File | null
+  })
+  const [orderLoading, setOrderLoading] = useState(false)
+  const [orderSuccess, setOrderSuccess] = useState('')
+  const [orderError, setOrderError] = useState('')
 
   useEffect(() => {
     if (params.id) {
@@ -89,10 +100,67 @@ export default function ProductDetailPage() {
     setImageLoading(true)
   }
 
-  const addToCart = () => {
-    if (product) {
-      // In a real app, this would integrate with a cart context/state
-      alert(`Added ${quantity} x ${product.title} to cart!`)
+  const handleOrderNow = () => {
+    setShowOrderModal(true)
+  }
+
+  const handleOrderSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!product) return
+
+    setOrderLoading(true)
+    setOrderError('')
+    setOrderSuccess('')
+
+    try {
+      const formData = new FormData()
+      formData.append('customer_name', orderForm.customer_name)
+      formData.append('customer_email', orderForm.customer_email)
+      formData.append('customer_phone', orderForm.customer_phone)
+      formData.append('customer_address', orderForm.customer_address)
+      formData.append('product_id', product._id)
+      formData.append('quantity', quantity.toString())
+      formData.append('total_amount', (product.finalPrice * quantity).toString())
+      
+      if (orderForm.payment_proof) {
+        formData.append('payment_proof', orderForm.payment_proof)
+      }
+
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        body: formData
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setOrderSuccess('Pesanan berhasil dibuat! Kami akan segera memproses pesanan Anda.')
+        setOrderForm({
+          customer_name: '',
+          customer_email: '',
+          customer_phone: '',
+          customer_address: '',
+          payment_proof: null
+        })
+        setTimeout(() => {
+          setShowOrderModal(false)
+          setOrderSuccess('')
+        }, 3000)
+      } else {
+        setOrderError(data.error || 'Gagal membuat pesanan')
+      }
+    } catch (error) {
+      console.error('Order error:', error)
+      setOrderError('Network error. Silakan coba lagi.')
+    } finally {
+      setOrderLoading(false)
+    }
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setOrderForm(prev => ({ ...prev, payment_proof: file }))
     }
   }
 
@@ -125,10 +193,192 @@ export default function ProductDetailPage() {
               </div>
             </div>
           </div>
-        </div>
       </div>
-    )
-  }
+
+      {/* Order Modal */}
+      <AnimatePresence>
+        {showOrderModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowOrderModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-dark-800 rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">Konfirmasi Pesanan</h3>
+                <button
+                  onClick={() => setShowOrderModal(false)}
+                  className="text-white/60 hover:text-white transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              {product && (
+                <div className="mb-6 p-4 bg-dark-700 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-16 h-16 relative rounded-lg overflow-hidden">
+                      <Image
+                        src={product.preview_images[0] || '/placeholder.jpg'}
+                        alt={product.title}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-white">{product.title}</h4>
+                      <p className="text-white/60 text-sm">Qty: {quantity}</p>
+                      <p className="text-primary-400 font-bold">{formatPrice(product.finalPrice * quantity)}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <form onSubmit={handleOrderSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">
+                    <User size={16} className="inline mr-2" />
+                    Nama Lengkap
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={orderForm.customer_name}
+                    onChange={(e) => setOrderForm(prev => ({ ...prev, customer_name: e.target.value }))}
+                    className="w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-primary-500"
+                    placeholder="Masukkan nama lengkap"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">
+                    <Mail size={16} className="inline mr-2" />
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={orderForm.customer_email}
+                    onChange={(e) => setOrderForm(prev => ({ ...prev, customer_email: e.target.value }))}
+                    className="w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-primary-500"
+                    placeholder="email@example.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">
+                    <Phone size={16} className="inline mr-2" />
+                    Nomor Telepon
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={orderForm.customer_phone}
+                    onChange={(e) => setOrderForm(prev => ({ ...prev, customer_phone: e.target.value }))}
+                    className="w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-primary-500"
+                    placeholder="08xxxxxxxxxx"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">
+                    <MapPin size={16} className="inline mr-2" />
+                    Alamat
+                  </label>
+                  <textarea
+                    required
+                    value={orderForm.customer_address}
+                    onChange={(e) => setOrderForm(prev => ({ ...prev, customer_address: e.target.value }))}
+                    className="w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-primary-500 resize-none"
+                    rows={3}
+                    placeholder="Alamat lengkap untuk pengiriman"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">
+                    <Upload size={16} className="inline mr-2" />
+                    Bukti Pembayaran
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                      id="payment-proof"
+                    />
+                    <label
+                      htmlFor="payment-proof"
+                      className="w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white/60 cursor-pointer hover:bg-dark-600 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <Upload size={16} />
+                      <span>{orderForm.payment_proof ? orderForm.payment_proof.name : 'Pilih file gambar'}</span>
+                    </label>
+                  </div>
+                  <p className="text-xs text-white/40 mt-1">Format: JPG, PNG, GIF (Max: 5MB)</p>
+                </div>
+
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                  <p className="text-blue-300 text-sm font-medium mb-2">Informasi Pembayaran:</p>
+                  <p className="text-blue-200 text-xs">
+                    Transfer ke rekening: BCA 1234567890 a.n. Seratus Porto<br />
+                    Nominal: {product && formatPrice(product.finalPrice * quantity)}<br />
+                    Upload bukti transfer untuk verifikasi pembayaran.
+                  </p>
+                </div>
+
+                {orderError && (
+                  <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                    <p className="text-red-300 text-sm">{orderError}</p>
+                  </div>
+                )}
+
+                {orderSuccess && (
+                  <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                    <p className="text-green-300 text-sm">{orderSuccess}</p>
+                  </div>
+                )}
+
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowOrderModal(false)}
+                    className="flex-1 px-4 py-3 bg-dark-700 hover:bg-dark-600 text-white rounded-lg font-medium transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={orderLoading}
+                    className="flex-1 px-4 py-3 bg-primary-500 hover:bg-primary-600 disabled:bg-primary-500/50 text-white rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+                  >
+                    {orderLoading ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Send size={16} />
+                        <span>Kirim Pesanan</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
   if (!product) {
     return (
@@ -371,11 +621,11 @@ export default function ProductDetailPage() {
                 {/* Action Buttons */}
                 <div className="flex space-x-4">
                   <button
-                    onClick={addToCart}
+                    onClick={handleOrderNow}
                     className="flex-1 bg-primary-500 hover:bg-primary-600 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
                   >
-                    <ShoppingCart size={20} />
-                    <span>Add to Cart</span>
+                    <Send size={20} />
+                    <span>Pesan Sekarang</span>
                   </button>
                   
                   <Link

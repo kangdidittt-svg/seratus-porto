@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   ArrowLeft, 
   Upload, 
@@ -8,7 +8,7 @@ import {
   Save,
   Image as ImageIcon
 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 
 interface ArtworkForm {
   title: string
@@ -17,9 +17,11 @@ interface ArtworkForm {
   featured: boolean
 }
 
-export default function CreateArtworkPage() {
+export default function EditArtworkPage() {
   const router = useRouter()
+  const params = useParams()
   const [loading, setLoading] = useState(false)
+  const [fetchLoading, setFetchLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
@@ -32,6 +34,39 @@ export default function CreateArtworkPage() {
     featured: false
   })
 
+  // Fetch artwork data
+  useEffect(() => {
+    if (params.id) {
+      fetchArtwork(params.id as string)
+    }
+  }, [params.id])
+
+  const fetchArtwork = async (id: string) => {
+    try {
+      setFetchLoading(true)
+      const response = await fetch(`/api/artworks/${id}`, {
+        credentials: 'include'
+      })
+      const data = await response.json()
+
+      if (response.ok) {
+        setFormData({
+          title: data.artwork.title,
+          description: data.artwork.description,
+          images: data.artwork.images,
+          featured: data.artwork.featured
+        })
+      } else {
+        setError('Gagal memuat data artwork')
+      }
+    } catch (error) {
+      console.error('Fetch artwork error:', error)
+      setError('Network error. Silakan coba lagi.')
+    } finally {
+      setFetchLoading(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -40,26 +75,29 @@ export default function CreateArtworkPage() {
 
     try {
       const response = await fetch('/api/artworks', {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          id: params.id,
+          ...formData
+        }),
         credentials: 'include'
       })
 
       const data = await response.json()
 
       if (response.ok) {
-        setSuccess('Artwork berhasil dibuat!')
+        setSuccess('Artwork berhasil diperbarui!')
         setTimeout(() => {
           router.push('/admin/dashboard')
         }, 2000)
       } else {
-        setError(data.error || 'Gagal membuat artwork')
+        setError(data.error || 'Gagal memperbarui artwork')
       }
     } catch (error) {
-      console.error('Create artwork error:', error)
+      console.error('Update artwork error:', error)
       setError('Network error. Silakan coba lagi.')
     } finally {
       setLoading(false)
@@ -126,6 +164,17 @@ export default function CreateArtworkPage() {
     }))
   }
 
+  if (fetchLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
+          <p className="text-white/70">Memuat data artwork...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 p-6">
       <div className="max-w-4xl mx-auto">
@@ -139,8 +188,8 @@ export default function CreateArtworkPage() {
               <ArrowLeft size={24} />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-white">Tambah Artwork Baru</h1>
-              <p className="text-white/60">Buat dan publikasikan artwork Anda</p>
+              <h1 className="text-2xl font-bold text-white">Edit Artwork</h1>
+              <p className="text-white/60">Perbarui informasi artwork Anda</p>
             </div>
           </div>
         </div>
@@ -351,7 +400,7 @@ export default function CreateArtworkPage() {
                 ) : (
                   <>
                     <Save size={18} />
-                    <span>Simpan Artwork</span>
+                    <span>Perbarui Artwork</span>
                   </>
                 )}
               </button>

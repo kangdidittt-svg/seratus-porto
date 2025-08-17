@@ -85,15 +85,18 @@ export async function POST(request: NextRequest) {
     const {
       customer_name,
       customer_email,
+      customer_phone,
+      customer_address,
       product_id,
       quantity = 1,
-      notes
+      notes,
+      payment_proof
     } = body
     
     // Validation
-    if (!customer_name || !customer_email || !product_id) {
+    if (!customer_name || !customer_email || !customer_phone || !customer_address || !product_id) {
       return NextResponse.json(
-        { error: 'Customer name, email, and product ID are required' },
+        { error: 'Customer name, email, phone, address, and product ID are required' },
         { status: 400 }
       )
     }
@@ -124,10 +127,13 @@ export async function POST(request: NextRequest) {
     const order = new Order({
       customer_name,
       customer_email: customer_email.toLowerCase(),
+      customer_phone,
+      customer_address,
       product_id,
       quantity,
       total_amount,
-      notes
+      notes,
+      payment_proof
     })
     
     await order.save()

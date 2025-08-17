@@ -3,6 +3,8 @@ import mongoose, { Document, Schema } from 'mongoose'
 export interface IOrder extends Document {
   customer_name: string
   customer_email: string
+  customer_phone: string
+  customer_address: string
   product_id: mongoose.Types.ObjectId
   quantity: number
   total_amount: number
@@ -10,6 +12,7 @@ export interface IOrder extends Document {
   delivery_status: 'pending' | 'processing' | 'delivered' | 'failed'
   download_link?: string
   download_expires?: Date
+  payment_proof?: string
   notes?: string
   createdAt: Date
   updatedAt: Date
@@ -29,6 +32,16 @@ const OrderSchema = new Schema<IOrder>(
       trim: true,
       lowercase: true,
       match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please provide a valid email']
+    },
+    customer_phone: {
+      type: String,
+      required: [true, 'Customer phone is required'],
+      trim: true
+    },
+    customer_address: {
+      type: String,
+      required: [true, 'Customer address is required'],
+      trim: true
     },
     product_id: {
       type: Schema.Types.ObjectId,
@@ -62,6 +75,10 @@ const OrderSchema = new Schema<IOrder>(
     },
     download_expires: {
       type: Date,
+      default: null
+    },
+    payment_proof: {
+      type: String,
       default: null
     },
     notes: {

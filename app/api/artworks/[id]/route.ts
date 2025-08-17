@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import Artwork from '@/models/Artwork'
 import mongoose from 'mongoose'
+import { verifyAdminToken } from '@/lib/auth'
 
 // GET /api/artworks/[id] - Get single artwork by ID
 export async function GET(
@@ -64,6 +65,126 @@ export async function GET(
     console.error('Get artwork error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch artwork' },
+      { status: 500 }
+    )
+  }
+}
+
+// PUT /api/artworks/[id] - Update artwork by ID
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // Verify admin authentication
+    const adminVerification = await verifyAdminToken(request)
+    if (!adminVerification.success) {
+      return NextResponse.json(
+        { error: adminVerification.error },
+        { status: 401 }
+      )
+    }
+
+    await dbConnect()
+    
+    const { id } = params
+    
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { error: 'Invalid artwork ID' },
+        { status: 400 }
+      )
+    }
+    
+    const body = await request.json()
+    const { title, description, images, featured } = body
+
+    // Validate required fields
+    if (!title || !description || !images || images.length === 0) {
+      return NextResponse.json(
+        { error: 'Semua field wajib diisi dan minimal 1 gambar' },
+        { status: 400 }
+      )
+    }
+
+    const artwork = await Artwork.findByIdAndUpdate(
+      id,
+      {
+        title,
+        description,
+        images,
+        featured: featured || false,
+        updatedAt: new Date()
+      },
+      { new: true }
+    )
+
+    if (!artwork) {
+      return NextResponse.json(
+        { error: 'Artwork tidak ditemukan' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Artwork berhasil diperbarui',
+      artwork
+    })
+  } catch (error) {
+    console.error('Update artwork error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+// DELETE /api/artworks/[id] - Delete artwork by ID
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // Verify admin authentication
+    const adminVerification = await verifyAdminToken(request)
+    if (!adminVerification.success) {
+      return NextResponse.json(
+        { error: adminVerification.error },
+        { status: 401 }
+      )
+    }
+
+    await dbConnect()
+    
+    const { id } = params
+    
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { error: 'Invalid artwork ID' },
+        { status: 400 }
+      )
+    }
+    
+    const artwork = await Artwork.findByIdAndDelete(id)
+
+    if (!artwork) {
+      return NextResponse.json(
+        { error: 'Artwork tidak ditemukan' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Artwork berhasil dihapus'
+    })
+  } catch (error) {
+    console.error('Delete artwork error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

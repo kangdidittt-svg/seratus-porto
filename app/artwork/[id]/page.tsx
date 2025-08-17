@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Calendar, Tag, Star, ChevronLeft, ChevronRight, X, ExternalLink } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -120,20 +119,23 @@ export default function ArtworkDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-primary-900">
+      <div className="min-h-screen relative overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 bg-[url('/components/bg-web.jpg')] bg-cover bg-center bg-fixed opacity-20" />
+        
         <Header />
         <div className="pt-24 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="animate-pulse">
-              <div className="h-8 bg-dark-700 rounded w-32 mb-8"></div>
+              <div className="h-8 bg-white/10 rounded w-32 mb-8"></div>
               <div className="grid lg:grid-cols-2 gap-12">
-                <div className="aspect-square bg-dark-700 rounded-2xl"></div>
+                <div className="aspect-square bg-white/10 rounded-2xl"></div>
                 <div className="space-y-6">
-                  <div className="h-8 bg-dark-700 rounded w-3/4"></div>
+                  <div className="h-8 bg-white/10 rounded w-3/4"></div>
                   <div className="space-y-3">
-                    <div className="h-4 bg-dark-700 rounded"></div>
-                    <div className="h-4 bg-dark-700 rounded w-5/6"></div>
-                    <div className="h-4 bg-dark-700 rounded w-4/6"></div>
+                    <div className="h-4 bg-white/10 rounded"></div>
+                    <div className="h-4 bg-white/10 rounded w-5/6"></div>
+                    <div className="h-4 bg-white/10 rounded w-4/6"></div>
                   </div>
                 </div>
               </div>
@@ -146,11 +148,14 @@ export default function ArtworkDetailPage() {
 
   if (!artwork) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-primary-900 flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 bg-[url('/components/bg-web.jpg')] bg-cover bg-center bg-fixed opacity-20" />
+        
+        <div className="text-center relative z-10">
           <h1 className="text-4xl font-bold text-white mb-4">Artwork Not Found</h1>
-          <p className="text-dark-300 mb-8">The artwork you're looking for doesn't exist.</p>
-          <Link href="/" className="btn-primary">
+          <p className="text-white/70 mb-8 text-lg">The artwork you're looking for doesn't exist.</p>
+          <Link href="/" className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-4 rounded-lg font-semibold transition-all duration-300 inline-block">
             Back to Home
           </Link>
         </div>
@@ -159,42 +164,34 @@ export default function ArtworkDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-primary-900">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 bg-[url('/components/bg-web.jpg')] bg-cover bg-center bg-fixed opacity-20" />
+      
       <Header />
       
-      <div className="pt-24 px-4 sm:px-6 lg:px-8">
+      <div className="pt-24 px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-7xl mx-auto">
           {/* Back Button */}
-          <motion.button
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
+          <button
             onClick={() => router.back()}
-            className="flex items-center space-x-2 text-dark-300 hover:text-white transition-colors mb-8 group"
+            className="flex items-center space-x-2 text-white/70 hover:text-white transition-all duration-300 mb-8 group bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20"
           >
             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
             <span>Back to Gallery</span>
-          </motion.button>
+          </button>
 
           {/* Main Content */}
           <div className="grid lg:grid-cols-2 gap-12 mb-16">
             {/* Image Gallery */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-            >
+            <div>
               <div className="relative">
                 {/* Main Image */}
-                <div className="relative aspect-square rounded-2xl overflow-hidden bg-dark-800 group cursor-pointer"
+                <div className="relative aspect-square rounded-2xl overflow-hidden bg-white/10 group cursor-pointer"
                      onClick={() => openImageModal(currentImageIndex)}>
                   {imageLoading && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="loading-dots">
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                      </div>
+                      <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     </div>
                   )}
                   <Image
@@ -211,14 +208,14 @@ export default function ArtworkDetailPage() {
                   
                   {/* Featured Badge */}
                   {artwork.featured && (
-                    <div className="absolute top-4 left-4 bg-primary-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1">
+                    <div className="absolute top-4 left-4 bg-primary-500 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center space-x-1">
                       <Star size={14} fill="currentColor" />
                       <span>Featured</span>
                     </div>
                   )}
 
                   {/* Expand Icon */}
-                  <div className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 border border-white/30">
                     <ExternalLink size={16} />
                   </div>
 
@@ -251,10 +248,10 @@ export default function ArtworkDetailPage() {
                         <button
                           key={index}
                           onClick={() => { setCurrentImageIndex(index); setImageLoading(true); }}
-                          className={`relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                          className={`relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all duration-300 hover:scale-105 ${
                             index === currentImageIndex
-                              ? 'border-primary-500 ring-2 ring-primary-500/30'
-                              : 'border-dark-600 hover:border-dark-500'
+                              ? 'border-primary-500 ring-2 ring-primary-500/50'
+                              : 'border-white/30 hover:border-primary-400 bg-white/10'
                           }`}
                           title={isMainImage ? `${artwork.title} ${index + 1}` : `Process Step ${index - (artwork.images?.length || 0) + 1}`}
                         >
@@ -273,21 +270,15 @@ export default function ArtworkDetailPage() {
                       )
                     })}
                   </div>
-                )}
-              </div>
-            </motion.div>
+                )}              </div>
+            </div>
 
             {/* Artwork Details */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="space-y-8"
-            >
+            <div className="space-y-8">
               {/* Title and Meta */}
               <div>
                 <h1 className="text-4xl font-bold text-white mb-4">{artwork.title}</h1>
-                <div className="flex items-center space-x-4 text-dark-300">
+                <div className="flex items-center space-x-4 text-white/70">
                   <div className="flex items-center space-x-2">
                     <Calendar size={16} />
                     <span>{new Date(artwork.createdAt).toLocaleDateString('id-ID', {
@@ -300,16 +291,16 @@ export default function ArtworkDetailPage() {
               </div>
 
               {/* Description */}
-              <div className="glass-effect rounded-xl p-6">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
                 <h3 className="text-xl font-semibold text-white mb-4">Description</h3>
-                <p className="text-dark-200 leading-relaxed whitespace-pre-line">
+                <p className="text-white/80 leading-relaxed whitespace-pre-line text-base">
                   {artwork.description}
                 </p>
               </div>
 
               {/* Tags */}
               {artwork.tags.length > 0 && (
-                <div className="glass-effect rounded-xl p-6">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
                   <h3 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
                     <Tag size={20} />
                     <span>Tags</span>
@@ -318,7 +309,7 @@ export default function ArtworkDetailPage() {
                     {artwork.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="px-3 py-1 bg-primary-500/20 text-primary-300 rounded-full text-sm border border-primary-500/30"
+                        className="px-4 py-2 bg-white/10 text-white/80 rounded-full text-sm border border-white/30 font-medium hover:bg-white/20 transition-colors"
                       >
                         {tag}
                       </span>
@@ -329,27 +320,24 @@ export default function ArtworkDetailPage() {
 
               {/* Creative Process */}
               {artwork.creative_process_images && artwork.creative_process_images.length > 0 && (
-                <div className="glass-effect rounded-xl p-6">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
                   <h3 className="text-xl font-semibold text-white mb-6">Creative Process</h3>
                   <div className="space-y-8">
                     {artwork.creative_process_images.map((processStep, index) => (
-                      <motion.div
+                      <div
                         key={index}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: index * 0.1 }}
-                        className="bg-dark-800/50 rounded-xl p-6 border border-dark-700"
+                        className="bg-white/5 rounded-xl p-6 border border-white/10"
                       >
                         <div className="flex items-start space-x-4 mb-4">
-                          <div className="flex-shrink-0 w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                          <div className="flex-shrink-0 w-10 h-10 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
                             {index + 1}
                           </div>
                           <div className="flex-1">
                             <h4 className="text-lg font-semibold text-white mb-2">{processStep.title}</h4>
-                            <p className="text-dark-200 leading-relaxed">{processStep.description}</p>
+                            <p className="text-white/80 leading-relaxed text-base">{processStep.description}</p>
                           </div>
                         </div>
-                        <div className="relative aspect-video rounded-lg overflow-hidden bg-dark-700 group cursor-pointer"
+                        <div className="relative aspect-video rounded-lg overflow-hidden bg-white/10 group cursor-pointer"
                              onClick={() => openImageModal((artwork.images?.length || 0) + index)}>
                           <Image
                             src={processStep.image_url}
@@ -363,7 +351,7 @@ export default function ArtworkDetailPage() {
                             </div>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -371,7 +359,7 @@ export default function ArtworkDetailPage() {
 
               {/* Legacy Process Steps (fallback) */}
               {(!artwork.creative_process_images || artwork.creative_process_images.length === 0) && artwork.process_steps.length > 0 && (
-                <div className="glass-effect rounded-xl p-6">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
                   <h3 className="text-xl font-semibold text-white mb-4">Creative Process</h3>
                   <div className="space-y-3">
                     {artwork.process_steps.map((step, index) => (
@@ -379,24 +367,24 @@ export default function ArtworkDetailPage() {
                         <div className="flex-shrink-0 w-6 h-6 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
                           {index + 1}
                         </div>
-                        <p className="text-dark-200 leading-relaxed">{step}</p>
+                        <p className="text-white/80 leading-relaxed">{step}</p>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-            </motion.div>
+            </div>
           </div>
 
           {/* Related Artworks */}
           {relatedArtworks.length > 0 && (
-            <motion.section
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="mb-16"
-            >
-              <h2 className="text-3xl font-bold text-white mb-8">Related Artworks</h2>
+            <section className="mb-16">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl font-bold text-white mb-4">Related Artworks</h2>
+                <p className="text-white/80 max-w-2xl mx-auto text-lg">
+                  Discover more artworks that share similar themes and styles
+                </p>
+              </div>
               <MasonryGrid>
                 {relatedArtworks.map((relatedArtwork, index) => (
                   <ArtworkCard
@@ -406,28 +394,21 @@ export default function ArtworkDetailPage() {
                   />
                 ))}
               </MasonryGrid>
-            </motion.section>
+            </section>
           )}
         </div>
       </div>
 
       {/* Image Modal */}
-      <AnimatePresence>
-        {showImageModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-            onClick={() => setShowImageModal(false)}
+      {showImageModal && (
+        <div
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowImageModal(false)}
+        >
+          <div
+            className="relative max-w-4xl max-h-full"
+            onClick={(e) => e.stopPropagation()}
           >
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
-              className="relative max-w-4xl max-h-full"
-              onClick={(e) => e.stopPropagation()}
-            >
               {/* Close Button */}
               <button
                 onClick={() => setShowImageModal(false)}
@@ -439,13 +420,8 @@ export default function ArtworkDetailPage() {
               {/* Modal Image */}
               <div className="relative aspect-square max-h-[80vh] rounded-lg overflow-hidden">
                 {imageLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-dark-800">
-                    <div className="loading-dots">
-                      <div></div>
-                      <div></div>
-                      <div></div>
-                      <div></div>
-                    </div>
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/10">
+                    <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                   </div>
                 )}
                 <Image
@@ -504,10 +480,9 @@ export default function ArtworkDetailPage() {
                   return null
                 })()}
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

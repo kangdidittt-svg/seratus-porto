@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import BackgroundLoader from '@/components/BackgroundLoader'
+import FaviconUpdater from '@/components/FaviconUpdater'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -23,8 +25,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id" className="scroll-smooth">
-      <body className={`${inter.className} bg-dark-900 text-white antialiased`}>
-        <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-primary-900">
+      <body className={`${inter.className} text-white antialiased`}>
+        <BackgroundLoader />
+        <FaviconUpdater />
+        <div className="min-h-screen">
           {children}
         </div>
       </body>

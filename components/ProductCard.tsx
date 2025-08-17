@@ -57,11 +57,8 @@ export default function ProductCard({ product, index, onAddToCart }: ProductCard
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="group bg-dark-800/50 backdrop-blur-sm border border-dark-700 rounded-2xl overflow-hidden hover:border-primary-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-primary-500/10"
+    <div
+      className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl overflow-hidden hover:border-primary-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-primary-500/10"
     >
       {/* Product Image */}
       <div className="relative aspect-square overflow-hidden">
@@ -74,13 +71,8 @@ export default function ProductCard({ product, index, onAddToCart }: ProductCard
 
         {/* Image Loading Skeleton */}
         {imageLoading && (
-          <div className="absolute inset-0 bg-dark-700 animate-pulse flex items-center justify-center">
-            <div className="loading-dots">
-              <div></div>
-              <div></div>
-              <div></div>
-              <div></div>
-            </div>
+          <div className="absolute inset-0 bg-white/10 animate-pulse flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
           </div>
         )}
 
@@ -144,7 +136,7 @@ export default function ProductCard({ product, index, onAddToCart }: ProductCard
             {product.category}
           </span>
           {product.tags.length > 0 && (
-            <div className="flex items-center space-x-1 text-dark-400">
+            <div className="flex items-center space-x-1 text-white/60">
               <Tag size={12} />
               <span className="text-xs">{product.tags.length}</span>
             </div>
@@ -157,7 +149,7 @@ export default function ProductCard({ product, index, onAddToCart }: ProductCard
         </h3>
 
         {/* Description */}
-        <p className="text-dark-300 text-sm leading-relaxed line-clamp-2">
+        <p className="text-white/70 text-sm leading-relaxed line-clamp-2">
           {product.description}
         </p>
 
@@ -167,26 +159,26 @@ export default function ProductCard({ product, index, onAddToCart }: ProductCard
             {product.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="text-xs bg-dark-700 text-dark-300 px-2 py-1 rounded-full"
+                className="text-xs bg-white/10 text-white/70 px-2 py-1 rounded-full border border-white/20"
               >
                 {tag}
               </span>
             ))}
             {product.tags.length > 3 && (
-              <span className="text-xs text-dark-400">+{product.tags.length - 3}</span>
+              <span className="text-xs text-white/60">+{product.tags.length - 3}</span>
             )}
           </div>
         )}
 
         {/* Price and Actions */}
-        <div className="flex items-center justify-between pt-2 border-t border-dark-700">
+        <div className="flex items-center justify-between pt-2 border-t border-white/20">
           <div className="flex flex-col">
             {hasDiscount ? (
               <>
                 <span className="text-lg font-bold text-primary-400">
                   {formatPrice(product.finalPrice)}
                 </span>
-                <span className="text-sm text-dark-400 line-through">
+                <span className="text-sm text-white/50 line-through">
                   {formatPrice(product.price)}
                 </span>
               </>
@@ -206,33 +198,33 @@ export default function ProductCard({ product, index, onAddToCart }: ProductCard
           </button>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
 // Product Card Skeleton for loading state
 export function ProductCardSkeleton() {
   return (
-    <div className="bg-dark-800/50 backdrop-blur-sm border border-dark-700 rounded-2xl overflow-hidden animate-pulse">
-      <div className="aspect-square bg-dark-700"></div>
+    <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl overflow-hidden animate-pulse">
+      <div className="aspect-square bg-white/10"></div>
       <div className="p-4 space-y-3">
         <div className="flex justify-between">
-          <div className="h-3 bg-dark-700 rounded w-16"></div>
-          <div className="h-3 bg-dark-700 rounded w-8"></div>
+          <div className="h-3 bg-white/10 rounded w-16"></div>
+          <div className="h-3 bg-white/10 rounded w-8"></div>
         </div>
-        <div className="h-5 bg-dark-700 rounded w-3/4"></div>
+        <div className="h-5 bg-white/10 rounded w-3/4"></div>
         <div className="space-y-2">
-          <div className="h-3 bg-dark-700 rounded"></div>
-          <div className="h-3 bg-dark-700 rounded w-5/6"></div>
+          <div className="h-3 bg-white/10 rounded"></div>
+          <div className="h-3 bg-white/10 rounded w-5/6"></div>
         </div>
         <div className="flex space-x-1">
-          <div className="h-5 bg-dark-700 rounded w-12"></div>
-          <div className="h-5 bg-dark-700 rounded w-16"></div>
-          <div className="h-5 bg-dark-700 rounded w-10"></div>
+          <div className="h-5 bg-white/10 rounded w-12"></div>
+          <div className="h-5 bg-white/10 rounded w-16"></div>
+          <div className="h-5 bg-white/10 rounded w-10"></div>
         </div>
         <div className="flex justify-between items-center pt-2">
-          <div className="h-6 bg-dark-700 rounded w-20"></div>
-          <div className="h-8 bg-dark-700 rounded w-24"></div>
+          <div className="h-6 bg-white/10 rounded w-20"></div>
+          <div className="h-8 bg-white/10 rounded w-24"></div>
         </div>
       </div>
     </div>

@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, Home, ShoppingBag, User, LogOut } from 'lucide-react'
+import { Menu, X, Home, ShoppingBag, User, LogOut, Info } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import Image from 'next/image'
 
 interface HeaderProps {
   isAdmin?: boolean
@@ -14,6 +15,8 @@ interface HeaderProps {
 export default function Header({ isAdmin = false, onLogout }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [hasCustomLogo, setHasCustomLogo] = useState(false)
   const pathname = usePathname()
 
   useEffect(() => {
@@ -25,9 +28,29 @@ export default function Header({ isAdmin = false, onLogout }: HeaderProps) {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Load logo settings
+  useEffect(() => {
+    const loadLogo = async () => {
+      try {
+        const response = await fetch('/api/settings/logo')
+        const data = await response.json()
+        
+        if (data.success) {
+          setLogoUrl(data.logoUrl)
+          setHasCustomLogo(data.hasCustomLogo)
+        }
+      } catch (error) {
+        console.error('Error loading logo:', error)
+      }
+    }
+
+    loadLogo()
+  }, [])
+
   const navItems = [
     { href: '/', label: 'Home', icon: Home },
     { href: '/shop', label: 'Shop', icon: ShoppingBag },
+    { href: '/about', label: 'Tentang Kami', icon: Info },
   ]
 
   const adminItems = [
@@ -40,20 +63,31 @@ export default function Header({ isAdmin = false, onLogout }: HeaderProps) {
       animate={{ y: 0 }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-dark-900/95 backdrop-blur-md border-b border-dark-700'
+          ? 'bg-black/20 backdrop-blur-md border-b border-white/10'
           : 'bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">S</span>
+          <Link href="/" className="flex items-center space-x-3 group">
+            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-all duration-300 overflow-hidden">
+              {hasCustomLogo && logoUrl ? (
+                <Image
+                  src={logoUrl}
+                  alt="Studio Logo"
+                  width={32}
+                  height={32}
+                  className="object-contain"
+                />
+              ) : (
+                <span className="text-white font-bold text-lg">S</span>
+              )}
             </div>
-            <span className="text-xl font-bold gradient-text hidden sm:block">
-              Seratus Studio
-            </span>
+            <div className="text-xl font-bold text-white hidden sm:block group-hover:text-white/80 transition-all duration-300">
+                <div>Seratus</div>
+                <div>Studio</div>
+              </div>
           </Link>
 
           {/* Desktop Navigation */}
@@ -66,10 +100,10 @@ export default function Header({ isAdmin = false, onLogout }: HeaderProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 ${
                     isActive
-                      ? 'bg-primary-500/20 text-primary-400'
-                      : 'text-dark-300 hover:text-white hover:bg-dark-800'
+                      ? 'bg-white/20 text-white backdrop-blur-sm'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
                   }`}
                 >
                   <Icon size={18} />
@@ -88,10 +122,10 @@ export default function Header({ isAdmin = false, onLogout }: HeaderProps) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 ${
                         isActive
-                          ? 'bg-primary-500/20 text-primary-400'
-                          : 'text-dark-300 hover:text-white hover:bg-dark-800'
+                          ? 'bg-white/20 text-white backdrop-blur-sm'
+                          : 'text-white/70 hover:text-white hover:bg-white/10'
                       }`}
                     >
                       <Icon size={18} />
@@ -102,7 +136,7 @@ export default function Header({ isAdmin = false, onLogout }: HeaderProps) {
                 
                 <button
                   onClick={onLogout}
-                  className="flex items-center space-x-2 px-3 py-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
+                  className="flex items-center space-x-2 px-4 py-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-white/10 transition-all duration-300"
                 >
                   <LogOut size={18} />
                   <span>Logout</span>
@@ -114,7 +148,7 @@ export default function Header({ isAdmin = false, onLogout }: HeaderProps) {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-dark-300 hover:text-white hover:bg-dark-800 transition-colors"
+            className="md:hidden p-3 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300"
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -128,7 +162,7 @@ export default function Header({ isAdmin = false, onLogout }: HeaderProps) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-dark-900/95 backdrop-blur-md border-t border-dark-700"
+            className="md:hidden bg-black/20 backdrop-blur-md border-t border-white/10"
           >
             <div className="px-4 py-4 space-y-2">
               {navItems.map((item) => {
@@ -137,15 +171,15 @@ export default function Header({ isAdmin = false, onLogout }: HeaderProps) {
                 
                 return (
                   <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                      isActive
-                        ? 'bg-primary-500/20 text-primary-400'
-                        : 'text-dark-300 hover:text-white hover:bg-dark-800'
-                    }`}
-                  >
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                        isActive
+                          ? 'bg-white/20 text-white backdrop-blur-sm'
+                          : 'text-white/70 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
                     <Icon size={20} />
                     <span>{item.label}</span>
                   </Link>
@@ -160,15 +194,15 @@ export default function Header({ isAdmin = false, onLogout }: HeaderProps) {
                     
                     return (
                       <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setIsMenuOpen(false)}
-                        className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                          isActive
-                            ? 'bg-primary-500/20 text-primary-400'
-                            : 'text-dark-300 hover:text-white hover:bg-dark-800'
-                        }`}
-                      >
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setIsMenuOpen(false)}
+                          className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                            isActive
+                              ? 'bg-white/20 text-white backdrop-blur-sm'
+                              : 'text-white/70 hover:text-white hover:bg-white/10'
+                          }`}
+                        >
                         <Icon size={20} />
                         <span>{item.label}</span>
                       </Link>
@@ -176,12 +210,12 @@ export default function Header({ isAdmin = false, onLogout }: HeaderProps) {
                   })}
                   
                   <button
-                    onClick={() => {
-                      onLogout?.()
-                      setIsMenuOpen(false)
-                    }}
-                    className="flex items-center space-x-3 px-4 py-3 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200 w-full text-left"
-                  >
+                      onClick={() => {
+                        onLogout?.()
+                        setIsMenuOpen(false)
+                      }}
+                      className="flex items-center space-x-3 px-4 py-3 rounded-lg text-red-400 hover:text-red-300 hover:bg-white/10 transition-all duration-300 w-full text-left"
+                    >
                     <LogOut size={20} />
                     <span>Logout</span>
                   </button>
