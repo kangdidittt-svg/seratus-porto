@@ -14,7 +14,9 @@ interface Product {
   title: string
   description: string
   price: number
+  original_price: number
   discount?: number
+  discountAmount?: number
   category: string
   file_url: string
   watermark_url: string
@@ -22,7 +24,7 @@ interface Product {
   tags: string[]
   downloads: number
   active: boolean
-  finalPrice: number
+
   createdAt: string
 }
 
@@ -120,7 +122,7 @@ export default function ProductDetailPage() {
       formData.append('customer_address', orderForm.customer_address)
       formData.append('product_id', product._id)
       formData.append('quantity', quantity.toString())
-      formData.append('total_amount', (product.finalPrice * quantity).toString())
+      formData.append('total_amount', (product.price * quantity).toString())
       
       if (orderForm.payment_proof) {
         formData.append('payment_proof', orderForm.payment_proof)
@@ -236,7 +238,7 @@ export default function ProductDetailPage() {
                     <div className="flex-1">
                       <h4 className="font-medium text-white">{product.title}</h4>
                       <p className="text-white/60 text-sm">Qty: {quantity}</p>
-                      <p className="text-primary-400 font-bold">{formatPrice(product.finalPrice * quantity)}</p>
+                      <p className="text-primary-400 font-bold">{formatPrice(product.price * quantity)}</p>
                     </div>
                   </div>
                 </div>
@@ -331,7 +333,7 @@ export default function ProductDetailPage() {
                   <p className="text-blue-300 text-sm font-medium mb-2">Informasi Pembayaran:</p>
                   <p className="text-blue-200 text-xs">
                     Transfer ke rekening: BCA 1234567890 a.n. Seratus Porto<br />
-                    Nominal: {product && formatPrice(product.finalPrice * quantity)}<br />
+                    Nominal: {product && formatPrice(product.price * quantity)}<br />
                     Upload bukti transfer untuk verifikasi pembayaran.
                   </p>
                 </div>
@@ -394,8 +396,9 @@ export default function ProductDetailPage() {
     )
   }
 
-  const hasDiscount = product.discount && product.discount > 0
-  const discountPercentage = hasDiscount ? Math.round(((product.discount || 0) / product.price) * 100) : 0
+  const hasDiscount = product.original_price > product.price
+  const discountPercentage = hasDiscount ? Math.round(((product.original_price - product.price) / product.original_price) * 100) : 0
+  const discountAmount = hasDiscount ? product.original_price - product.price : 0
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-primary-900">
@@ -537,18 +540,23 @@ export default function ProductDetailPage() {
                 <h1 className="text-4xl font-bold text-white mb-4">{product.title}</h1>
                 
                 {/* Price */}
-                <div className="flex items-center space-x-4 mb-6">
+                <div className="flex flex-col space-y-2 mb-6">
                   {hasDiscount ? (
                     <>
-                      <span className="text-3xl font-bold text-primary-400">
-                        {formatPrice(product.finalPrice)}
-                      </span>
-                      <span className="text-xl text-dark-400 line-through">
-                        {formatPrice(product.price)}
-                      </span>
-                      <span className="bg-red-500 text-white px-2 py-1 rounded text-sm font-bold">
-                        Save {formatPrice(product.discount!)}
-                      </span>
+                      <div className="flex items-center space-x-4">
+                        <span className="text-3xl font-bold text-primary-400">
+                          {formatPrice(product.price)}
+                        </span>
+                        <span className="text-xl text-dark-400 line-through">
+                          {formatPrice(product.original_price)}
+                        </span>
+                        <span className="bg-red-500 text-white px-2 py-1 rounded text-sm font-bold">
+                          -{discountPercentage}%
+                        </span>
+                      </div>
+                      <div className="text-green-400 font-semibold text-lg">
+                        Hemat {formatPrice(discountAmount)}
+                      </div>
                     </>
                   ) : (
                     <span className="text-3xl font-bold text-primary-400">
@@ -614,7 +622,7 @@ export default function ProductDetailPage() {
                 <div className="flex items-center justify-between mb-6 p-4 bg-dark-700/50 rounded-lg">
                   <span className="text-lg font-semibold text-white">Total:</span>
                   <span className="text-2xl font-bold text-primary-400">
-                    {formatPrice(product.finalPrice * quantity)}
+                    {formatPrice(product.price * quantity)}
                   </span>
                 </div>
 

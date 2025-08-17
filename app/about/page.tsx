@@ -27,7 +27,7 @@ export default function AboutPage() {
     <>
       <BackgroundLoader />
       <Header />
-      <div className="min-h-screen flex flex-col items-center justify-center gap-5 pt-20">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-5 pt-20 pb-16">
       <img 
         src={profileImage}
         alt="Illustrator Photo"
@@ -51,7 +51,7 @@ export default function AboutPage() {
       </p>
       
       {/* Social Media Section */}
-       <div className="flex gap-6 mt-8 justify-center">
+       <div className="flex gap-6 mt-8 mb-16 justify-center">
          {/* Instagram */}
          <a 
            href="https://www.instagram.com/kang.didit/" 

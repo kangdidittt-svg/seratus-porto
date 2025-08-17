@@ -120,8 +120,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Calculate total amount
-    const finalPrice = product.price - (product.price * product.discount / 100)
-    const total_amount = finalPrice * quantity
+    const total_amount = product.price * quantity
     
     // Create order
     const order = new Order({

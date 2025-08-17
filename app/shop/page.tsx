@@ -12,14 +12,13 @@ interface Product {
   title: string
   description: string
   price: number
-  discount?: number
+  original_price?: number
   category: string
   watermark_url: string
   preview_images: string[]
   tags: string[]
   downloads: number
   active: boolean
-  finalPrice: number
 }
 
 interface CartItem extends Product {
@@ -71,6 +70,8 @@ export default function ShopPage() {
   const [checkoutForm, setCheckoutForm] = useState({
     customer_name: '',
     customer_email: '',
+    customer_phone: '',
+    customer_address: '',
     notes: ''
   })
 
@@ -162,7 +163,7 @@ export default function ShopPage() {
   }
 
   const getTotalPrice = () => {
-    return cart.reduce((total, item) => total + (item.finalPrice * item.quantity), 0)
+    return cart.reduce((total, item) => total + (item.price * item.quantity), 0)
   }
 
   const getTotalItems = () => {
@@ -175,8 +176,11 @@ export default function ShopPage() {
       const orders = cart.map(item => ({
         customer_name: checkoutForm.customer_name,
         customer_email: checkoutForm.customer_email,
+        customer_phone: checkoutForm.customer_phone || '-',
+        customer_address: checkoutForm.customer_address || '-',
         product_id: item._id,
         quantity: item.quantity,
+        total_amount: item.price * item.quantity,
         notes: checkoutForm.notes
       }))
 
@@ -198,7 +202,7 @@ export default function ShopPage() {
       setCart([])
       setShowCheckout(false)
       setShowCart(false)
-      setCheckoutForm({ customer_name: '', customer_email: '', notes: '' })
+      setCheckoutForm({ customer_name: '', customer_email: '', customer_phone: '', customer_address: '', notes: '' })
       
       alert('Order berhasil dibuat! Kami akan mengirimkan link download ke email Anda.')
     } catch (error) {
@@ -242,150 +246,9 @@ export default function ShopPage() {
         </div>
       </section>
 
-      {/* Filters and Search */}
-      <section className="px-4 sm:px-6 lg:px-8 mb-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-            {/* Search and Cart */}
-            <div className="flex flex-col lg:flex-row gap-4 mb-6">
-              <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/60" size={20} />
-                <input
-                  type="text"
-                  placeholder="Cari produk digital..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                />
-              </div>
-              
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center space-x-2 px-4 py-3 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-colors border border-white/20"
-                >
-                  <SlidersHorizontal size={18} />
-                  <span>Filters</span>
-                </button>
-                
-                <button
-                  onClick={() => setShowCart(true)}
-                  className="relative flex items-center space-x-2 px-4 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors"
-                >
-                  <ShoppingCart size={18} />
-                  <span>Cart</span>
-                  {getTotalItems() > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
-                      {getTotalItems()}
-                    </span>
-                  )}
-                </button>
-              </div>
-            </div>
 
-            {/* Filters Panel */}
-            {showFilters && (
-              <div className="border-t border-white/20 pt-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {/* Category Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-2">Category</label>
-                    <select
-                      value={selectedCategory}
-                      onChange={(e) => setSelectedCategory(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    >
-                      <option value="">All Categories</option>
-                      {availableCategories.map(category => (
-                        <option key={category} value={category}>{category}</option>
-                      ))}
-                    </select>
-                  </div>
 
-                  {/* Sort Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-2">Sort By</label>
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    >
-                      <option value="newest">Newest</option>
-                      <option value="oldest">Oldest</option>
-                      <option value="price_low">Price: Low to High</option>
-                      <option value="price_high">Price: High to Low</option>
-                      <option value="popular">Most Downloaded</option>
-                    </select>
-                  </div>
 
-                  {/* Price Range */}
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-white/70 mb-2">
-                      Price Range: {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
-                    </label>
-                    <div className="flex space-x-4">
-                      <input
-                        type="range"
-                        min={0}
-                        max={maxPrice}
-                        value={priceRange[0]}
-                        onChange={(e) => setPriceRange([parseInt(e.target.value), priceRange[1]])}
-                        className="flex-1"
-                      />
-                      <input
-                        type="range"
-                        min={0}
-                        max={maxPrice}
-                        value={priceRange[1]}
-                        onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                        className="flex-1"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tags */}
-                {availableTags.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-2">Tags</label>
-                    <div className="flex flex-wrap gap-2">
-                      {availableTags.slice(0, 15).map(tag => (
-                        <button
-                          key={tag}
-                          onClick={() => {
-                            setSelectedTags(prev => 
-                              prev.includes(tag) 
-                                ? prev.filter(t => t !== tag)
-                                : [...prev, tag]
-                            )
-                          }}
-                          className={`px-3 py-1 rounded-full text-sm transition-all ${
-                            selectedTags.includes(tag)
-                              ? 'bg-primary-500 text-white'
-                              : 'bg-white/10 text-white/70 hover:bg-white/20 border border-white/20'
-                          }`}
-                        >
-                          {tag}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Clear Filters */}
-                <div className="flex justify-end">
-                  <button
-                    onClick={clearFilters}
-                    className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors border border-red-500/30"
-                  >
-                    Clear All Filters
-                  </button>
-                </div>
-              </div>
-               )}
-          </div>
-        </div>
-      </section>
 
       {/* Products Grid */}
       <section className="px-4 sm:px-6 lg:px-8 pb-16">
@@ -447,6 +310,29 @@ export default function ShopPage() {
         </div>
       </section>
 
+      {/* Floating Cart Button */}
+      <motion.button
+        onClick={() => setShowCart(true)}
+        className="fixed bottom-6 right-6 bg-primary-500 hover:bg-primary-600 text-white p-4 rounded-full shadow-2xl z-40 transition-all duration-300 hover:scale-110"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        initial={{ opacity: 0, y: 100 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <ShoppingCart size={24} />
+        {getTotalItems() > 0 && (
+          <motion.span
+            className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          >
+            {getTotalItems()}
+          </motion.span>
+        )}
+      </motion.button>
+
       {/* Cart Modal */}
       {showCart && (
         <div
@@ -491,7 +377,7 @@ export default function ShopPage() {
                         
                         <div className="flex-1">
                           <h3 className="font-semibold text-white">{item.title}</h3>
-                          <p className="text-primary-400 font-medium">{formatPrice(item.finalPrice)}</p>
+                          <p className="text-primary-400 font-medium">{formatPrice(item.price)}</p>
                         </div>
                         
                         <div className="flex items-center space-x-2">
@@ -580,6 +466,27 @@ export default function ShopPage() {
                     value={checkoutForm.customer_email}
                     onChange={(e) => setCheckoutForm(prev => ({ ...prev, customer_email: e.target.value }))}
                     className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">Phone</label>
+                  <input
+                    type="tel"
+                    required
+                    value={checkoutForm.customer_phone}
+                    onChange={(e) => setCheckoutForm(prev => ({ ...prev, customer_phone: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">Address</label>
+                  <textarea
+                    required
+                    value={checkoutForm.customer_address}
+                    onChange={(e) => setCheckoutForm(prev => ({ ...prev, customer_address: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 h-16 resize-none"
                   />
                 </div>
                 

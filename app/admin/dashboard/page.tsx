@@ -21,15 +21,18 @@ import {
   Download,
   X,
   Monitor,
-  Check
+  Check,
+  Database
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import DownloadManager from '@/components/DownloadManager'
 
 interface User {
   _id: string
   username: string
   email: string
   role: string
+  createdAt?: string
 }
 
 interface Artwork {
@@ -47,7 +50,7 @@ interface Product {
   title: string
   description: string
   price: number
-  discount: number
+  original_price: number
   category: string
   preview_images: string[]
   tags: string[]
@@ -68,6 +71,9 @@ interface Order {
   payment_status: 'pending' | 'paid' | 'failed'
   delivery_status: 'pending' | 'processing' | 'delivered'
   payment_proof?: string | null
+  download_link?: string
+  download_expires?: string
+  notes?: string
   createdAt: string
 }
 
@@ -95,6 +101,14 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('')
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
+  const [users, setUsers] = useState<User[]>([])
+  const [showAddUserModal, setShowAddUserModal] = useState(false)
+  const [newUserForm, setNewUserForm] = useState({
+    username: '',
+    email: '',
+    password: '',
+    role: 'user' as 'admin' | 'user'
+  })
 
   useEffect(() => {
     checkAuthentication()
@@ -167,6 +181,8 @@ export default function AdminDashboard() {
         const response = await fetch('/api/orders?limit=20')
         const data = await response.json()
         setOrders(data.orders || [])
+      } else if (activeTab === 'users') {
+        loadUsers()
       }
     } catch (error) {
       console.error('Error loading data:', error)
@@ -245,6 +261,148 @@ export default function AdminDashboard() {
     }
   }
 
+  const clearAllData = async () => {
+    const confirmMessage = 'PERINGATAN: Ini akan menghapus SEMUA data produk dan karya dari database. Ketik "HAPUS SEMUA" untuk konfirmasi:'
+    const userInput = prompt(confirmMessage)
+    
+    if (userInput !== 'HAPUS SEMUA') {
+      alert('Operasi dibatalkan. Teks konfirmasi tidak sesuai.')
+      return
+    }
+
+    if (!confirm('Apakah Anda BENAR-BENAR yakin? Tindakan ini tidak dapat dibatalkan!')) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      
+      // Hapus semua produk
+      const productsResponse = await fetch('/api/admin/cleanup/products', {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+      
+      // Hapus semua artworks
+      const artworksResponse = await fetch('/api/admin/cleanup/artworks', {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+      
+      if (productsResponse.ok && artworksResponse.ok) {
+        setSuccess('Semua data produk dan karya berhasil dihapus!')
+        setTimeout(() => setSuccess(''), 5000)
+        loadDashboardData()
+      } else {
+        setError('Gagal menghapus beberapa data. Silakan coba lagi.')
+        setTimeout(() => setError(''), 5000)
+      }
+    } catch (error) {
+      console.error('Clear all data error:', error)
+      setError('Network error. Silakan coba lagi.')
+      setTimeout(() => setError(''), 5000)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadUsers = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/admin/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setUsers(data || [])
+      } else {
+        setError('Gagal memuat data users')
+        setTimeout(() => setError(''), 5000)
+      }
+    } catch (error) {
+      console.error('Load users error:', error)
+      setError('Network error saat memuat users')
+      setTimeout(() => setError(''), 5000)
+    }
+  }
+
+  // Delete user
+  const deleteUser = async (userId: string) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus user ini?')) {
+      return
+    }
+
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/admin/users?id=${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      if (response.ok) {
+        setSuccess('User berhasil dihapus')
+        setTimeout(() => setSuccess(''), 3000)
+        loadUsers() // Reload users list
+      } else {
+        const errorData = await response.json()
+        setError(errorData.error || 'Gagal menghapus user')
+        setTimeout(() => setError(''), 5000)
+      }
+    } catch (error) {
+      console.error('Delete user error:', error)
+      setError('Network error saat menghapus user')
+      setTimeout(() => setError(''), 5000)
+    }
+  }
+
+  const createUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!newUserForm.username || !newUserForm.email || !newUserForm.password) {
+      setError('Semua field harus diisi')
+      setTimeout(() => setError(''), 5000)
+      return
+    }
+
+    try {
+      setLoading(true)
+      
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(newUserForm)
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        setSuccess('User berhasil ditambahkan!')
+        setTimeout(() => setSuccess(''), 5000)
+        setNewUserForm({ username: '', email: '', password: '', role: 'user' })
+        setShowAddUserModal(false)
+        loadUsers()
+      } else {
+        setError(data.error || 'Gagal menambahkan user')
+        setTimeout(() => setError(''), 5000)
+      }
+    } catch (error) {
+      console.error('Create user error:', error)
+      setError('Network error. Silakan coba lagi.')
+      setTimeout(() => setError(''), 5000)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -258,6 +416,7 @@ export default function AdminDashboard() {
     { id: 'artworks', label: 'Artworks', icon: Image },
     { id: 'products', label: 'Products', icon: Package },
     { id: 'orders', label: 'Orders', icon: ShoppingBag },
+    { id: 'users', label: 'Users', icon: Users },
     { id: 'backgrounds', label: 'Backgrounds', icon: Monitor }
   ]
 
@@ -284,6 +443,14 @@ export default function AdminDashboard() {
                 className="text-white/70 hover:text-white transition-all duration-300 px-4 py-2 rounded-lg hover:bg-white/10"
               >
                 View Site
+              </button>
+              <button
+                onClick={clearAllData}
+                className="flex items-center space-x-2 text-red-400 hover:text-red-300 transition-all duration-300 px-4 py-2 rounded-lg hover:bg-white/10"
+                title="Hapus semua data produk dan karya"
+              >
+                <Database size={18} />
+                <span>Clear All</span>
               </button>
               <button
                 onClick={() => router.push('/settings')}
@@ -552,9 +719,9 @@ export default function AdminDashboard() {
                           className="w-full h-full object-cover"
                         />
                       )}
-                      {product.discount > 0 && (
+                      {product.original_price > product.price && (
                         <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                          -{product.discount}%
+                          -{Math.round(((product.original_price - product.price) / product.original_price) * 100)}%
                         </span>
                       )}
                       {!product.active && (
@@ -722,6 +889,87 @@ export default function AdminDashboard() {
               </div>
             </motion.div>
           )}
+
+          {/* Users Tab */}
+          {activeTab === 'users' && (
+            <motion.div
+              key="users"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-white">Users Management</h2>
+                <button
+                  onClick={() => setShowAddUserModal(true)}
+                  className="flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-all duration-300"
+                >
+                  <Plus size={18} />
+                  <span>Add User</span>
+                </button>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-white/5">
+                      <tr>
+                        <th className="text-left p-4 text-white/70">Username</th>
+                        <th className="text-left p-4 text-white/70">Email</th>
+                        <th className="text-left p-4 text-white/70">Role</th>
+                        <th className="text-left p-4 text-white/70">Created</th>
+                        <th className="text-left p-4 text-white/70">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((userItem) => (
+                        <tr key={userItem._id} className="border-t border-white/10">
+                          <td className="p-4">
+                            <p className="text-white font-medium">{userItem.username}</p>
+                          </td>
+                          <td className="p-4">
+                            <p className="text-white">{userItem.email}</p>
+                          </td>
+                          <td className="p-4">
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              userItem.role === 'admin' ? 'bg-red-500/20 text-red-400' :
+                              'bg-blue-500/20 text-blue-400'
+                            }`}>
+                              {userItem.role}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <p className="text-white/70 text-sm">
+                              {new Date(userItem.createdAt || '').toLocaleDateString('id-ID')}
+                            </p>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => deleteUser(userItem._id)}
+                                className="text-red-400 hover:text-red-300 transition-colors"
+                                title="Delete User"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {users.length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="p-8 text-center text-white/50">
+                            No users found
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
 
@@ -837,6 +1085,17 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               )}
+              
+              {/* Download Management */}
+              <div className="mt-6">
+                <DownloadManager 
+                  order={selectedOrder} 
+                  onUpdate={() => {
+                    // Refresh orders data
+                    fetchOrders()
+                  }} 
+                />
+              </div>
             </div>
             
             {/* Action Buttons */}
@@ -953,12 +1212,12 @@ export default function AdminDashboard() {
                   <select
                     value={editingOrder.payment_status}
                     onChange={(e) => setEditingOrder({...editingOrder, payment_status: e.target.value as any})}
-                    className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                   >
-                    <option value="pending" className="bg-gray-800">Pending</option>
-                    <option value="paid" className="bg-gray-800">Paid</option>
-                    <option value="failed" className="bg-gray-800">Failed</option>
-                    <option value="refunded" className="bg-gray-800">Refunded</option>
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                    <option value="failed">Failed</option>
+                    <option value="refunded">Refunded</option>
                   </select>
                 </div>
                 <div>
@@ -966,12 +1225,12 @@ export default function AdminDashboard() {
                   <select
                     value={editingOrder.delivery_status}
                     onChange={(e) => setEditingOrder({...editingOrder, delivery_status: e.target.value as any})}
-                    className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                   >
-                    <option value="pending" className="bg-gray-800">Pending</option>
-                    <option value="processing" className="bg-gray-800">Processing</option>
-                    <option value="delivered" className="bg-gray-800">Delivered</option>
-                    <option value="failed" className="bg-gray-800">Failed</option>
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="failed">Failed</option>
                   </select>
                 </div>
               </div>
@@ -1010,6 +1269,96 @@ export default function AdminDashboard() {
                   className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors"
                 >
                   Update Order
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add User Modal */}
+      {showAddUserModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 max-w-md w-full border border-white/20">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-white">Add New User</h3>
+              <button
+                onClick={() => {
+                  setShowAddUserModal(false)
+                  setNewUserForm({ username: '', email: '', password: '', role: 'user' })
+                }}
+                className="text-white/70 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={createUser} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-1">Username</label>
+                <input
+                  type="text"
+                  value={newUserForm.username}
+                  onChange={(e) => setNewUserForm(prev => ({ ...prev, username: e.target.value }))}
+                  className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Enter username"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={newUserForm.email}
+                  onChange={(e) => setNewUserForm(prev => ({ ...prev, email: e.target.value }))}
+                  className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Enter email"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-1">Password</label>
+                <input
+                  type="password"
+                  value={newUserForm.password}
+                  onChange={(e) => setNewUserForm(prev => ({ ...prev, password: e.target.value }))}
+                  className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Enter password"
+                  required
+                  minLength={6}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-1">Role</label>
+                <select
+                  value={newUserForm.role}
+                  onChange={(e) => setNewUserForm(prev => ({ ...prev, role: e.target.value }))}
+                  className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="user" className="bg-gray-800 text-white">User</option>
+                  <option value="admin" className="bg-gray-800 text-white">Admin</option>
+                </select>
+              </div>
+              
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddUserModal(false)
+                    setNewUserForm({ username: '', email: '', password: '', role: 'user' })
+                  }}
+                  className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  Add User
                 </button>
               </div>
             </form>

@@ -88,6 +88,10 @@ export default function SettingsPage() {
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [currentLogo, setCurrentLogo] = useState('')
   const [hasCustomLogo, setHasCustomLogo] = useState(false)
+  const [defaultWatermarkFile, setDefaultWatermarkFile] = useState<File | null>(null)
+  const [uploadingWatermark, setUploadingWatermark] = useState(false)
+  const [currentWatermark, setCurrentWatermark] = useState('')
+  const [hasDefaultWatermark, setHasDefaultWatermark] = useState(false)
 
   // Load saved background preference and profile image
   useEffect(() => {
@@ -101,6 +105,9 @@ export default function SettingsPage() {
     
     // Load current logo
     loadCurrentLogo()
+    
+    // Load current watermark
+    loadCurrentWatermark()
   }, [])
 
   const loadCurrentProfileImage = async () => {
@@ -125,6 +132,19 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.log('Using default logo')
+    }
+  }
+
+  const loadCurrentWatermark = async () => {
+    try {
+      const response = await fetch('/api/settings/watermark')
+      if (response.ok) {
+        const data = await response.json()
+        setCurrentWatermark(data.watermarkUrl)
+        setHasDefaultWatermark(data.hasDefaultWatermark)
+      }
+    } catch (error) {
+      console.log('Using no default watermark')
     }
   }
 
@@ -315,7 +335,58 @@ export default function SettingsPage() {
     }
   }
 
+  const handleWatermarkUpload = async () => {
+    if (!defaultWatermarkFile) return
 
+    setUploadingWatermark(true)
+    try {
+      const formData = new FormData()
+      formData.append('watermark', defaultWatermarkFile)
+
+      const response = await fetch('/api/settings/watermark', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCurrentWatermark(data.watermarkUrl)
+        setHasDefaultWatermark(true)
+        setDefaultWatermarkFile(null)
+        setSaveMessage('Default watermark updated successfully!')
+        setTimeout(() => setSaveMessage(''), 3000)
+      } else {
+        setSaveMessage('Failed to upload watermark')
+        setTimeout(() => setSaveMessage(''), 3000)
+      }
+    } catch (error) {
+      setSaveMessage('Error uploading watermark')
+      setTimeout(() => setSaveMessage(''), 3000)
+    } finally {
+      setUploadingWatermark(false)
+    }
+  }
+
+  const handleWatermarkReset = async () => {
+    try {
+      const response = await fetch('/api/settings/watermark', {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        setCurrentWatermark('')
+        setHasDefaultWatermark(false)
+        setSaveMessage('Default watermark removed!')
+        setTimeout(() => setSaveMessage(''), 3000)
+      } else {
+        setSaveMessage('Failed to remove watermark')
+        setTimeout(() => setSaveMessage(''), 3000)
+      }
+    } catch (error) {
+      setSaveMessage('Error removing watermark')
+      setTimeout(() => setSaveMessage(''), 3000)
+    }
+  }
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -626,6 +697,96 @@ export default function SettingsPage() {
                 <li>• The logo will be displayed in the header navigation</li>
                 <li>• Favicon will be automatically generated from your logo</li>
                 <li>• Changes will be visible after page refresh</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Default Watermark Settings */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mt-6">
+            <div className="flex items-center space-x-3 mb-6">
+              <Monitor className="text-primary-400" size={24} />
+              <h2 className="text-xl font-semibold text-white">Default Watermark Settings</h2>
+            </div>
+            
+            <p className="text-white/60 mb-8">
+              Upload a default watermark that will be automatically applied to all artworks. This watermark will be used when generating downloads.
+            </p>
+
+            {/* Current Watermark Preview */}
+            <div className="mb-6">
+              <h3 className="text-white font-medium mb-3">Current Default Watermark</h3>
+              <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-white/20 bg-white/5 flex items-center justify-center">
+                {hasDefaultWatermark && currentWatermark ? (
+                  <img 
+                    src={currentWatermark} 
+                    alt="Current watermark" 
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <span className="text-white/40 text-sm text-center px-2">No default watermark</span>
+                )}
+              </div>
+            </div>
+
+            {/* Watermark Upload */}
+            <div className="p-4 bg-white/5 rounded-xl border border-white/10 mb-4">
+              <h3 className="text-white font-medium mb-3">Upload Default Watermark</h3>
+              <p className="text-white/60 text-sm mb-4">
+                Choose a watermark image. Supported formats: PNG, JPG, JPEG. Recommended: PNG with transparency for best results.
+              </p>
+              
+              <div className="flex items-center space-x-3">
+                <input
+                  id="watermark-upload"
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg"
+                  onChange={(e) => setDefaultWatermarkFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="watermark-upload"
+                  className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white/70 cursor-pointer hover:bg-white/20 transition-all duration-200 flex items-center space-x-2"
+                >
+                  <Upload size={18} />
+                  <span>{defaultWatermarkFile ? defaultWatermarkFile.name : 'Choose watermark image'}</span>
+                </label>
+                <button
+                  onClick={handleWatermarkUpload}
+                  disabled={!defaultWatermarkFile || uploadingWatermark}
+                  className="px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center space-x-2"
+                >
+                  {uploadingWatermark ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <Upload size={16} />
+                  )}
+                  <span>{uploadingWatermark ? 'Uploading...' : 'Upload'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Reset Watermark Button */}
+            {hasDefaultWatermark && (
+              <div className="flex justify-center mb-4">
+                <button
+                  onClick={handleWatermarkReset}
+                  className="flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  <RotateCcw size={18} />
+                  <span>Remove Default Watermark</span>
+                </button>
+              </div>
+            )}
+
+            {/* Watermark Tips */}
+            <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+              <h4 className="text-blue-300 font-medium mb-2">Watermark Tips:</h4>
+              <ul className="text-blue-200 text-sm space-y-1">
+                <li>• Use PNG format with transparency for best results</li>
+                <li>• Watermark will be automatically positioned on artworks</li>
+                <li>• Keep watermark size reasonable (not too large or small)</li>
+                <li>• This watermark will be applied to all download requests</li>
+                <li>• You can still override this with custom watermarks per artwork</li>
               </ul>
             </div>
           </div>

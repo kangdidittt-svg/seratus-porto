@@ -93,7 +93,7 @@ export default function HomePage() {
       <Header />
       
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+      <section className="relative pt-32 pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -101,30 +101,13 @@ export default function HomePage() {
             transition={{ duration: 0.8 }}
           >
             
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-white">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-2 text-white">
               Seratus Studio
             </h1>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button 
-                onClick={scrollToArtworks}
-                className="px-8 py-3 bg-white/20 backdrop-blur-sm text-white font-medium rounded-lg hover:bg-white/30 transition-all duration-300 border border-white/30 transform hover:scale-105"
-              >
-                Jelajahi Karya
-              </button>
-              <a 
-                href="/about"
-                className="px-8 py-3 bg-transparent text-white font-medium rounded-lg hover:bg-white/10 transition-all duration-300 border border-white/30 transform hover:scale-105 inline-block text-center"
-              >
-                Tentang Kami
-              </a>
-            </div>
           </motion.div>
         </div>
       </section>
-
-
 
       {/* Artworks Grid */}
       <section id="artworks-section" className="px-4 sm:px-6 lg:px-8 pb-20">

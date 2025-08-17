@@ -4,7 +4,7 @@ export interface IProduct extends Document {
   title: string
   description: string
   price: number
-  discount: number
+  original_price: number
   category: string
   file_url: string
   watermark_url: string
@@ -32,14 +32,13 @@ const ProductSchema = new Schema<IProduct>(
     },
     price: {
       type: Number,
-      required: [true, 'Price is required'],
+      required: [true, 'Sale price is required'],
       min: [0, 'Price cannot be negative']
     },
-    discount: {
+    original_price: {
       type: Number,
-      default: 0,
-      min: [0, 'Discount cannot be negative'],
-      max: [100, 'Discount cannot exceed 100%']
+      required: [true, 'Original price is required'],
+      min: [0, 'Original price cannot be negative']
     },
     category: {
       type: String,
@@ -85,9 +84,20 @@ const ProductSchema = new Schema<IProduct>(
   }
 )
 
-// Virtual for final price after discount
+// Virtual for final price (same as price since price is already the sale price)
 ProductSchema.virtual('finalPrice').get(function() {
-  return this.price - (this.price * this.discount / 100)
+  return this.price
+})
+
+// Virtual for discount percentage
+ProductSchema.virtual('discount').get(function() {
+  if (this.original_price <= 0) return 0
+  return Math.round(((this.original_price - this.price) / this.original_price) * 100)
+})
+
+// Virtual for discount amount
+ProductSchema.virtual('discountAmount').get(function() {
+  return Math.max(0, this.original_price - this.price)
 })
 
 // Index for better search and filtering

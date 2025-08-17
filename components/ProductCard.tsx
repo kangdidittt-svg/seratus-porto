@@ -11,7 +11,9 @@ interface Product {
   title: string
   description: string
   price: number
+  original_price: number
   discount?: number
+  discountAmount?: number
   category: string
   watermark_url: string
   preview_images: string[]
@@ -31,8 +33,9 @@ export default function ProductCard({ product, index, onAddToCart }: ProductCard
   const [imageLoading, setImageLoading] = useState(true)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
-  const hasDiscount = product.discount && product.discount > 0
-  const discountPercentage = hasDiscount ? Math.round(((product.discount || 0) / product.price) * 100) : 0
+  const hasDiscount = product.original_price > product.price
+  const discountPercentage = hasDiscount ? Math.round(((product.original_price - product.price) / product.original_price) * 100) : 0
+  const discountAmount = hasDiscount ? product.original_price - product.price : 0
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -176,10 +179,13 @@ export default function ProductCard({ product, index, onAddToCart }: ProductCard
             {hasDiscount ? (
               <>
                 <span className="text-lg font-bold text-primary-400">
-                  {formatPrice(product.finalPrice)}
+                  {formatPrice(product.price)}
                 </span>
                 <span className="text-sm text-white/50 line-through">
-                  {formatPrice(product.price)}
+                  {formatPrice(product.original_price)}
+                </span>
+                <span className="text-xs text-green-400 font-medium">
+                  Hemat {formatPrice(discountAmount)}
                 </span>
               </>
             ) : (

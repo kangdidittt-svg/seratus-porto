@@ -17,7 +17,7 @@ interface ProductForm {
   title: string
   description: string
   price: number
-  discount: number
+  original_price: number
   category: string
   file_url: string
   watermark_url: string
@@ -55,7 +55,7 @@ export default function CreateProductPage() {
     title: '',
     description: '',
     price: 0,
-    discount: 0,
+    original_price: 0,
     category: '',
     file_url: '',
     watermark_url: '',
@@ -63,6 +63,10 @@ export default function CreateProductPage() {
     tags: [],
     active: true
   })
+
+  // Calculate discount percentage and amount
+  const discountAmount = formData.original_price - formData.price
+  const discountPercentage = formData.original_price > 0 ? Math.round((discountAmount / formData.original_price) * 100) : 0
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -339,10 +343,30 @@ export default function CreateProductPage() {
               </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Price */}
+                {/* Original Price */}
                 <div>
                   <label className="block text-sm font-medium text-white/70 mb-2">
-                    Price (Rp) *
+                    Original Price (Rp) *
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 text-sm">Rp</span>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      step="0.01"
+                      value={formData.original_price}
+                      onChange={(e) => setFormData(prev => ({ ...prev, original_price: parseFloat(e.target.value) || 0 }))}
+                      className="w-full pl-8 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+
+                {/* Sale Price */}
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">
+                    Sale Price (Rp) *
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 text-sm">Rp</span>
@@ -358,41 +382,30 @@ export default function CreateProductPage() {
                     />
                   </div>
                 </div>
-
-                {/* Discount */}
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">
-                    Discount (%)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={formData.discount}
-                    onChange={(e) => setFormData(prev => ({ ...prev, discount: parseFloat(e.target.value) || 0 }))}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                    placeholder="0"
-                  />
-                </div>
               </div>
 
               {/* Price Preview */}
-              {formData.price > 0 && (
-                <div className="bg-white/10 p-4 rounded-lg">
+              {formData.price > 0 && formData.original_price > 0 && (
+                <div className="bg-white/10 p-4 rounded-lg space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-white/70">Final Price:</span>
+                    <span className="text-white/70">Price Preview:</span>
                     <div className="flex items-center space-x-2">
-                      {formData.discount > 0 && (
-                        <span className="text-white/50 line-through">Rp {formData.price.toLocaleString('id-ID')}</span>
+                      {discountAmount > 0 && (
+                        <span className="text-white/50 line-through">Rp {formData.original_price.toLocaleString('id-ID')}</span>
                       )}
-                      <span className="text-primary-400 font-bold text-lg">Rp {finalPrice.toLocaleString('id-ID')}</span>
-                      {formData.discount > 0 && (
+                      <span className="text-primary-400 font-bold text-lg">Rp {formData.price.toLocaleString('id-ID')}</span>
+                      {discountPercentage > 0 && (
                         <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                          -{formData.discount}%
+                          -{discountPercentage}%
                         </span>
                       )}
                     </div>
                   </div>
+                  {discountAmount > 0 && (
+                    <div className="text-center">
+                      <span className="text-green-400 font-medium">Hemat Rp {discountAmount.toLocaleString('id-ID')}</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

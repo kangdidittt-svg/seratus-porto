@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
       title,
       description,
       price,
-      discount,
+      original_price,
       category,
       file_url,
       watermark_url,
@@ -129,9 +129,9 @@ export async function POST(request: NextRequest) {
     } = body
     
     // Validation
-    if (!title || !description || !price || !category || !file_url || !watermark_url) {
+    if (!title || !description || !price || !original_price || !category || !file_url || !watermark_url) {
       return NextResponse.json(
-        { error: 'Title, description, price, category, file_url, and watermark_url are required' },
+        { error: 'Title, description, price, original_price, category, file_url, and watermark_url are required' },
         { status: 400 }
       )
     }
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
       title,
       description,
       price,
-      discount: discount || 0,
+      original_price,
       category,
       file_url,
       watermark_url,

@@ -383,6 +383,53 @@ body {
   }
 }
 
+/* Custom Select Dropdown Styling */
+select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+select::-ms-expand {
+  display: none;
+}
+
+select option {
+  background-color: #1e293b;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+}
+
+select option:hover {
+  background-color: #334155;
+}
+
+select option:checked {
+  background-color: #6366f1;
+  color: white;
+}
+
+/* Firefox specific styling */
+@-moz-document url-prefix() {
+  select option {
+    background-color: #1e293b !important;
+    color: white !important;
+  }
+  
+  select option:hover {
+    background-color: #334155 !important;
+  }
+  
+  select option:checked {
+    background-color: #6366f1 !important;
+  }
+}
+
 /* Accessibility */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -391,10 +438,9 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-}
-
-/* High Contrast Mode */
+}/* High Contrast Mode */
 @media (prefers-contrast: high) {
   .glass-effect {
     background: var(--dark-900);
