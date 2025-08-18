@@ -8,36 +8,18 @@ import Image from 'next/image'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import ProductCard from '@/components/ProductCard'
-
-interface Product {
-  _id: string
-  title: string
-  description: string
-  price: number
-  original_price: number
-  discount?: number
-  discountAmount?: number
-  category: string
-  file_url: string
-  watermark_url: string
-  preview_images: string[]
-  tags: string[]
-  downloads: number
-  active: boolean
-
-  createdAt: string
-}
+import { IProduct } from '@/models/Product'
 
 interface ApiResponse {
-  product: Product
-  relatedProducts: Product[]
+  product: IProduct
+  relatedProducts: IProduct[]
 }
 
 export default function ProductDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const [product, setProduct] = useState<Product | null>(null)
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
+  const [product, setProduct] = useState<IProduct | null>(null)
+  const [relatedProducts, setRelatedProducts] = useState<IProduct[]>([])
   const [loading, setLoading] = useState(true)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [showImageModal, setShowImageModal] = useState(false)
@@ -83,14 +65,14 @@ export default function ProductDetailPage() {
   }
 
   const nextImage = () => {
-    if (product && product.preview_images.length > 1) {
+    if (product && product.preview_images && product.preview_images.length > 1) {
       setCurrentImageIndex((prev) => (prev + 1) % product.preview_images.length)
       setImageLoading(true)
     }
   }
 
   const prevImage = () => {
-    if (product && product.preview_images.length > 1) {
+    if (product && product.preview_images && product.preview_images.length > 1) {
       setCurrentImageIndex((prev) => (prev - 1 + product.preview_images.length) % product.preview_images.length)
       setImageLoading(true)
     }
@@ -229,7 +211,7 @@ export default function ProductDetailPage() {
                   <div className="flex items-center space-x-3">
                     <div className="w-16 h-16 relative rounded-lg overflow-hidden">
                       <Image
-                        src={product.preview_images[0] || '/placeholder.jpg'}
+                        src={(product.preview_images && product.preview_images[0]) || '/placeholder.jpg'}
                         alt={product.title}
                         fill
                         className="object-cover"
@@ -454,7 +436,7 @@ export default function ProductDetailPage() {
                   )}
                   
                   <Image
-                    src={product.preview_images[currentImageIndex] || product.watermark_url || '/placeholder-product.jpg'}
+                    src={(product.preview_images && product.preview_images[currentImageIndex]) || product.watermark_url || '/placeholder-product.jpg'}
                     alt={product.title}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -467,7 +449,7 @@ export default function ProductDetailPage() {
                   </div>
 
                   {/* Navigation Arrows */}
-                  {product.preview_images.length > 1 && (
+                  {product.preview_images && product.preview_images.length > 1 && (
                     <>
                       <button
                         onClick={(e) => { e.stopPropagation(); prevImage(); }}
@@ -486,7 +468,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Thumbnail Gallery */}
-                {product.preview_images.length > 1 && (
+                {product.preview_images && product.preview_images.length > 1 && (
                   <div className="flex space-x-2 mt-4 overflow-x-auto pb-2">
                     {product.preview_images.map((image, index) => (
                       <button
@@ -575,7 +557,7 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Tags */}
-              {product.tags.length > 0 && (
+              {product.tags && product.tags.length > 0 && (
                 <div className="glass-effect rounded-xl p-6">
                   <h3 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
                     <Tag size={20} />
@@ -722,7 +704,7 @@ export default function ProductDetailPage() {
                   </div>
                 )}
                 <Image
-                  src={product.preview_images[currentImageIndex] || product.watermark_url}
+                  src={(product.preview_images && product.preview_images[currentImageIndex]) || product.watermark_url}
                   alt={product.title}
                   fill
                   className="object-contain"
@@ -730,7 +712,7 @@ export default function ProductDetailPage() {
                 />
 
                 {/* Navigation in Modal */}
-                {product.preview_images.length > 1 && (
+                {product.preview_images && product.preview_images.length > 1 && (
                   <>
                     <button
                       onClick={prevImage}
@@ -749,9 +731,9 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Image Counter */}
-              {product.preview_images.length > 1 && (
+              {product.preview_images && product.preview_images.length > 1 && (
                 <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-white text-sm">
-                  {currentImageIndex + 1} / {product.preview_images.length}
+                  {currentImageIndex + 1} / {product.preview_images ? product.preview_images.length : 0}
                 </div>
               )}
             </motion.div>

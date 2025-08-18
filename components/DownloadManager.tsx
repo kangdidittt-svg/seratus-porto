@@ -85,10 +85,10 @@ export default function DownloadManager({ order, onUpdate }: DownloadManagerProp
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border">
+    <div className="bg-white/10 backdrop-blur-md p-6 rounded-lg shadow-sm border border-white/20">
       <div className="flex items-center gap-2 mb-4">
-        <Download className="w-5 h-5 text-blue-600" />
-        <h3 className="text-lg font-semibold">Download Management</h3>
+        <Download className="w-5 h-5 text-blue-400" />
+        <h3 className="text-lg font-semibold text-white">Download Management</h3>
       </div>
 
       <div className="space-y-4">
@@ -118,7 +118,7 @@ export default function DownloadManager({ order, onUpdate }: DownloadManagerProp
         {canGenerateDownload && !hasDownload && (
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Download Type:</label>
+              <label className="text-sm font-medium text-white/70">Download Type:</label>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2">
                   <input
@@ -126,9 +126,9 @@ export default function DownloadManager({ order, onUpdate }: DownloadManagerProp
                     value="url"
                     checked={downloadType === 'url'}
                     onChange={(e) => setDownloadType(e.target.value as 'url' | 'zip')}
-                    className="text-blue-600"
+                    className="text-blue-400"
                   />
-                  <span className="text-sm">Direct URL</span>
+                  <span className="text-sm text-white">Direct URL</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input
@@ -136,16 +136,16 @@ export default function DownloadManager({ order, onUpdate }: DownloadManagerProp
                     value="zip"
                     checked={downloadType === 'zip'}
                     onChange={(e) => setDownloadType(e.target.value as 'url' | 'zip')}
-                    className="text-blue-600"
+                    className="text-blue-400"
                   />
-                  <span className="text-sm">ZIP Package</span>
+                  <span className="text-sm text-white">ZIP Package</span>
                 </label>
               </div>
             </div>
 
             {/* Watermark Options */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Watermark:</label>
+              <label className="text-sm font-medium text-white/70">Watermark:</label>
               <div className="space-y-2">
                 <label className="flex items-center gap-2">
                   <input
@@ -153,9 +153,9 @@ export default function DownloadManager({ order, onUpdate }: DownloadManagerProp
                     value="default"
                     checked={watermarkOption === 'default'}
                     onChange={(e) => setWatermarkOption(e.target.value as 'default' | 'none' | 'custom')}
-                    className="text-blue-600"
+                    className="text-blue-400"
                   />
-                  <span className="text-sm">Use Default Watermark</span>
+                  <span className="text-sm text-white">Use Default Watermark</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input
@@ -163,9 +163,9 @@ export default function DownloadManager({ order, onUpdate }: DownloadManagerProp
                     value="none"
                     checked={watermarkOption === 'none'}
                     onChange={(e) => setWatermarkOption(e.target.value as 'default' | 'none' | 'custom')}
-                    className="text-blue-600"
+                    className="text-blue-400"
                   />
-                  <span className="text-sm">No Watermark</span>
+                  <span className="text-sm text-white">No Watermark</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input
@@ -173,22 +173,22 @@ export default function DownloadManager({ order, onUpdate }: DownloadManagerProp
                     value="custom"
                     checked={watermarkOption === 'custom'}
                     onChange={(e) => setWatermarkOption(e.target.value as 'default' | 'none' | 'custom')}
-                    className="text-blue-600"
+                    className="text-blue-400"
                   />
-                  <span className="text-sm">Custom Watermark</span>
+                  <span className="text-sm text-white">Custom Watermark</span>
                 </label>
               </div>
 
               {/* Custom Watermark Upload */}
               {watermarkOption === 'custom' && (
-                <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                <div className="mt-2 p-3 bg-white/10 rounded-lg border border-white/20">
                   <input
                     type="file"
                     accept="image/png,image/jpeg,image/jpg"
                     onChange={(e) => setCustomWatermarkFile(e.target.files?.[0] || null)}
-                    className="text-sm"
+                    className="block w-full text-sm text-white/70 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-500/20 file:text-blue-300 hover:file:bg-blue-500/30"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-white/50 mt-1">
                     Upload PNG, JPG, or JPEG. PNG with transparency recommended.
                   </p>
                 </div>
@@ -222,7 +222,7 @@ export default function DownloadManager({ order, onUpdate }: DownloadManagerProp
         {hasDownload && (
           <div className="space-y-3">
             <div className={`flex items-center gap-2 text-sm ${
-              isExpired ? 'text-red-600' : 'text-green-600'
+              isExpired ? 'text-red-400' : 'text-green-400'
             }`}>
               {isExpired ? (
                 <>
@@ -238,7 +238,7 @@ export default function DownloadManager({ order, onUpdate }: DownloadManagerProp
             </div>
             
             {order.download_expires && (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-white/60">
                 Expires: {new Date(order.download_expires).toLocaleDateString('id-ID', {
                   year: 'numeric',
                   month: 'long',
@@ -252,7 +252,7 @@ export default function DownloadManager({ order, onUpdate }: DownloadManagerProp
             <div className="flex gap-2">
               <button
                 onClick={copyDownloadLink}
-                className="flex items-center gap-2 bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700"
+                className="flex items-center gap-2 bg-white/20 text-white px-3 py-1 rounded text-sm hover:bg-white/30 transition-colors"
               >
                 <Download className="w-4 h-4" />
                 Copy Link
@@ -274,10 +274,10 @@ export default function DownloadManager({ order, onUpdate }: DownloadManagerProp
 
         {/* Status Message */}
         {message && (
-          <div className={`p-3 rounded-lg text-sm ${
+          <div className={`p-3 rounded-lg text-sm border ${
             message.includes('success') || message.includes('copied') 
-              ? 'bg-green-50 text-green-700 border border-green-200'
-              : 'bg-red-50 text-red-700 border border-red-200'
+              ? 'bg-green-500/20 text-green-300 border-green-500/30'
+              : 'bg-red-500/20 text-red-300 border-red-500/30'
           }`}>
             {message}
           </div>

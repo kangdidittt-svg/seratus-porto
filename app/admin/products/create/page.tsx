@@ -22,7 +22,6 @@ interface ProductForm {
   file_url: string
   watermark_url: string
   preview_images: string[]
-  tags: string[]
   active: boolean
 }
 
@@ -43,13 +42,15 @@ export default function CreateProductPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const [newTag, setNewTag] = useState('')
+
+  const [imageUrl, setImageUrl] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [uploadingImage, setUploadingImage] = useState(false)
   const [fileUpload, setFileUpload] = useState<File | null>(null)
   const [uploadingFile, setUploadingFile] = useState(false)
-  const [watermarkUpload, setWatermarkUpload] = useState<File | null>(null)
-  const [uploadingWatermark, setUploadingWatermark] = useState(false)
+
+  const [fileInputType, setFileInputType] = useState<'upload' | 'url'>('upload')
+  const [fileUrl, setFileUrl] = useState('')
   
   const [formData, setFormData] = useState<ProductForm>({
     title: '',
@@ -60,7 +61,6 @@ export default function CreateProductPage() {
     file_url: '',
     watermark_url: '',
     preview_images: [],
-    tags: [],
     active: true
   })
 
@@ -75,12 +75,18 @@ export default function CreateProductPage() {
     setSuccess('')
 
     try {
+      // Prepare data with proper price handling
+      const submitData = {
+        ...formData,
+        price: formData.price > 0 ? formData.price : undefined
+      }
+      
       const response = await fetch('/api/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
         credentials: 'include'
       })
 
@@ -172,40 +178,7 @@ export default function CreateProductPage() {
     }
   }
 
-  const handleWatermarkUpload = async () => {
-    if (!watermarkUpload) return
 
-    setUploadingWatermark(true)
-    try {
-      const formDataUpload = new FormData()
-      formDataUpload.append('file', watermarkUpload)
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formDataUpload
-      })
-
-      const data = await response.json()
-
-      if (response.ok && data.success) {
-        setFormData(prev => ({
-          ...prev,
-          watermark_url: data.url
-        }))
-        setWatermarkUpload(null)
-        // Reset file input
-        const fileInput = document.getElementById('watermark-upload') as HTMLInputElement
-        if (fileInput) fileInput.value = ''
-      } else {
-        setError(data.error || 'Failed to upload watermark')
-      }
-    } catch (error) {
-      console.error('Upload error:', error)
-      setError('Failed to upload watermark')
-    } finally {
-      setUploadingWatermark(false)
-    }
-  }
 
   const addImage = () => {
     if (imageUrl.trim() && !formData.preview_images.includes(imageUrl.trim())) {
@@ -224,24 +197,9 @@ export default function CreateProductPage() {
     }))
   }
 
-  const addTag = () => {
-    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim()]
-      }))
-      setNewTag('')
-    }
-  }
 
-  const removeTag = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter((_, i) => i !== index)
-    }))
-  }
 
-  const finalPrice = formData.price - (formData.price * formData.discount / 100)
+  const finalPrice = formData.price
 
   return (
     <div className="min-h-screen bg-cover bg-center bg-fixed" style={{backgroundImage: 'url(/bg-web.jpg)'}}>
@@ -263,7 +221,6 @@ export default function CreateProductPage() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8">
-        >
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Basic Information */}
             <div className="space-y-6">
@@ -366,35 +323,39 @@ export default function CreateProductPage() {
                 {/* Sale Price */}
                 <div>
                   <label className="block text-sm font-medium text-white/70 mb-2">
-                    Sale Price (Rp) *
+                    Sale Price (Rp)
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 text-sm">Rp</span>
                     <input
                       type="number"
-                      required
                       min="0"
                       step="0.01"
                       value={formData.price}
                       onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
                       className="w-full pl-8 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                      placeholder="0.00"
+                      placeholder="Leave empty for no discount"
                     />
                   </div>
+                  <p className="text-white/50 text-xs mt-1">
+                    Optional: Leave empty if no discount is applied
+                  </p>
                 </div>
               </div>
 
               {/* Price Preview */}
-              {formData.price > 0 && formData.original_price > 0 && (
+              {formData.original_price > 0 && (
                 <div className="bg-white/10 p-4 rounded-lg space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-white/70">Price Preview:</span>
                     <div className="flex items-center space-x-2">
-                      {discountAmount > 0 && (
+                      {formData.price > 0 && discountAmount > 0 && (
                         <span className="text-white/50 line-through">Rp {formData.original_price.toLocaleString('id-ID')}</span>
                       )}
-                      <span className="text-primary-400 font-bold text-lg">Rp {formData.price.toLocaleString('id-ID')}</span>
-                      {discountPercentage > 0 && (
+                      <span className="text-primary-400 font-bold text-lg">
+                        Rp {(formData.price > 0 ? formData.price : formData.original_price).toLocaleString('id-ID')}
+                      </span>
+                      {formData.price > 0 && discountPercentage > 0 && (
                         <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                           -{discountPercentage}%
                         </span>
@@ -416,92 +377,106 @@ export default function CreateProductPage() {
                 Files
               </h2>
               
-              {/* File Upload */}
+              {/* File Input Type Toggle */}
               <div>
                 <label className="block text-sm font-medium text-white/70 mb-2">
                   Download File *
                 </label>
-                <div className="flex items-center space-x-4">
-                  <input
-                    id="file-upload"
-                    type="file"
-                    onChange={(e) => setFileUpload(e.target.files?.[0] || null)}
-                    className="hidden"
-                  />
-                  <label
-                    htmlFor="file-upload"
-                    className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white/70 cursor-pointer hover:bg-white/20 transition-all duration-200 flex items-center space-x-2"
-                  >
-                    <Package size={18} />
-                    <span>{fileUpload ? fileUpload.name : 'Choose file to upload'}</span>
-                  </label>
+                <div className="flex space-x-4 mb-4">
                   <button
                     type="button"
-                    onClick={handleFileUpload}
-                    disabled={!fileUpload || uploadingFile}
-                    className="bg-primary-500 hover:bg-primary-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-colors"
+                    onClick={() => setFileInputType('upload')}
+                    className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors ${
+                      fileInputType === 'upload'
+                        ? 'bg-primary-500 text-white'
+                        : 'bg-white/10 text-white/70 hover:bg-white/20'
+                    }`}
                   >
-                    {uploadingFile ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    ) : (
-                      <Upload size={18} />
-                    )}
-                    <span>{uploadingFile ? 'Uploading...' : 'Upload'}</span>
+                    <Upload size={16} />
+                    <span>Upload File</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFileInputType('url')}
+                    className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors ${
+                      fileInputType === 'url'
+                        ? 'bg-primary-500 text-white'
+                        : 'bg-white/10 text-white/70 hover:bg-white/20'
+                    }`}
+                  >
+                    <Link size={16} />
+                    <span>Use URL</span>
                   </button>
                 </div>
+
+                {fileInputType === 'upload' ? (
+                  <div className="flex items-center space-x-4">
+                    <input
+                      id="file-upload"
+                      type="file"
+                      onChange={(e) => setFileUpload(e.target.files?.[0] || null)}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="file-upload"
+                      className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white/70 cursor-pointer hover:bg-white/20 transition-all duration-200 flex items-center space-x-2"
+                    >
+                      <Package size={18} />
+                      <span>{fileUpload ? fileUpload.name : 'Choose file to upload'}</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleFileUpload}
+                      disabled={!fileUpload || uploadingFile}
+                      className="bg-primary-500 hover:bg-primary-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-colors"
+                    >
+                      {uploadingFile ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <Upload size={18} />
+                      )}
+                      <span>{uploadingFile ? 'Uploading...' : 'Upload'}</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-4">
+                    <input
+                      type="url"
+                      value={fileUrl}
+                      onChange={(e) => setFileUrl(e.target.value)}
+                      className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                      placeholder="https://example.com/file.zip"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (fileUrl.trim()) {
+                          setFormData(prev => ({ ...prev, file_url: fileUrl.trim() }))
+                          setFileUrl('')
+                        }
+                      }}
+                      disabled={!fileUrl.trim()}
+                      className="bg-primary-500 hover:bg-primary-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-colors"
+                    >
+                      <Link size={18} />
+                      <span>Set URL</span>
+                    </button>
+                  </div>
+                )}
+                
                 {formData.file_url && (
                   <p className="text-green-400 text-sm mt-2">
-                    ✓ File uploaded: {formData.file_url.split('/').pop()}
+                    ✓ File set: {formData.file_url.includes('http') ? 'External URL' : formData.file_url.split('/').pop()}
                   </p>
                 )}
                 <p className="text-white/50 text-xs mt-1">
-                  This file will be provided to customers after purchase
+                  {fileInputType === 'upload' 
+                    ? 'Upload file to server (uses storage)' 
+                    : 'Use external URL (saves server storage)'}
                 </p>
               </div>
 
-              {/* Watermark Upload */}
-              <div>
-                <label className="block text-sm font-medium text-white/70 mb-2">
-                  Watermark Preview Image
-                </label>
-                <div className="flex items-center space-x-4">
-                  <input
-                    id="watermark-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setWatermarkUpload(e.target.files?.[0] || null)}
-                    className="hidden"
-                  />
-                  <label
-                    htmlFor="watermark-upload"
-                    className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white/70 cursor-pointer hover:bg-white/20 transition-all duration-200 flex items-center space-x-2"
-                  >
-                    <Upload size={18} />
-                    <span>{watermarkUpload ? watermarkUpload.name : 'Choose watermark image'}</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={handleWatermarkUpload}
-                    disabled={!watermarkUpload || uploadingWatermark}
-                    className="bg-primary-500 hover:bg-primary-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-colors"
-                  >
-                    {uploadingWatermark ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    ) : (
-                      <Upload size={18} />
-                    )}
-                    <span>{uploadingWatermark ? 'Uploading...' : 'Upload'}</span>
-                  </button>
-                </div>
-                {formData.watermark_url && (
-                  <p className="text-green-400 text-sm mt-2">
-                    ✓ Watermark uploaded: {formData.watermark_url.split('/').pop()}
-                  </p>
-                )}
-                <p className="text-white/50 text-xs mt-1">
-                  Optional: Watermarked version for preview
-                </p>
-              </div>
+
             </div>
 
             {/* Preview Images */}
@@ -570,53 +545,7 @@ export default function CreateProductPage() {
               )}
             </div>
 
-            {/* Tags */}
-            <div className="space-y-6">
-              <h2 className="text-lg font-semibold text-white border-b border-white/20 pb-2">
-                Tags
-              </h2>
-              
-              {/* Add Tag */}
-              <div className="flex space-x-3">
-                <input
-                  type="text"
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                  className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Enter tag"
-                />
-                <button
-                  type="button"
-                  onClick={addTag}
-                  className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-colors"
-                >
-                  <Plus size={18} />
-                  <span>Add</span>
-                </button>
-              </div>
 
-              {/* Tag List */}
-              {formData.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {formData.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="bg-primary-500/20 text-primary-300 px-3 py-1 rounded-full text-sm flex items-center space-x-2"
-                    >
-                      <span>{tag}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeTag(index)}
-                        className="text-primary-300 hover:text-white transition-colors"
-                      >
-                        <X size={14} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
 
             {/* Error/Success Messages */}
             {error && (

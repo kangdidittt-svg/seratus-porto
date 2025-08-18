@@ -1,37 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { ShoppingCart, Eye, Download, Star, Tag } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-
-interface Product {
-  _id: string
-  title: string
-  description: string
-  price: number
-  original_price: number
-  discount?: number
-  discountAmount?: number
-  category: string
-  watermark_url: string
-  preview_images: string[]
-  tags: string[]
-  downloads: number
-  active: boolean
-  finalPrice: number
-}
+import { IProduct } from '@/models/Product'
 
 interface ProductCardProps {
-  product: Product
+  product: IProduct
   index: number
-  onAddToCart: (product: Product) => void
+  onAddToCart: (product: IProduct) => void
 }
 
 export default function ProductCard({ product, index, onAddToCart }: ProductCardProps) {
   const [imageLoading, setImageLoading] = useState(true)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
+  // Reset image index when product changes
+  useEffect(() => {
+    setCurrentImageIndex(0)
+    setImageLoading(true)
+  }, [product._id])
 
   const hasDiscount = product.original_price > product.price
   const discountPercentage = hasDiscount ? Math.round(((product.original_price - product.price) / product.original_price) * 100) : 0
@@ -46,14 +36,14 @@ export default function ProductCard({ product, index, onAddToCart }: ProductCard
   }
 
   const nextImage = () => {
-    if (product.preview_images.length > 1) {
+    if (product.preview_images && product.preview_images.length > 1) {
       setCurrentImageIndex((prev) => (prev + 1) % product.preview_images.length)
       setImageLoading(true)
     }
   }
 
   const prevImage = () => {
-    if (product.preview_images.length > 1) {
+    if (product.preview_images && product.preview_images.length > 1) {
       setCurrentImageIndex((prev) => (prev - 1 + product.preview_images.length) % product.preview_images.length)
       setImageLoading(true)
     }
@@ -81,7 +71,7 @@ export default function ProductCard({ product, index, onAddToCart }: ProductCard
 
         {/* Main Image */}
         <Image
-          src={product.preview_images[currentImageIndex] || product.watermark_url || '/placeholder-product.jpg'}
+          src={(product.preview_images && product.preview_images[currentImageIndex]) || product.watermark_url || '/placeholder-product.jpg'}
           alt={product.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -89,7 +79,7 @@ export default function ProductCard({ product, index, onAddToCart }: ProductCard
         />
 
         {/* Image Navigation Dots */}
-        {product.preview_images.length > 1 && (
+        {product.preview_images && product.preview_images.length > 1 && (
           <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-1">
             {product.preview_images.map((_, index) => (
               <button
@@ -138,7 +128,7 @@ export default function ProductCard({ product, index, onAddToCart }: ProductCard
           <span className="text-xs text-primary-400 font-medium uppercase tracking-wide">
             {product.category}
           </span>
-          {product.tags.length > 0 && (
+          {product.tags && product.tags.length > 0 && (
             <div className="flex items-center space-x-1 text-white/60">
               <Tag size={12} />
               <span className="text-xs">{product.tags.length}</span>
@@ -157,7 +147,7 @@ export default function ProductCard({ product, index, onAddToCart }: ProductCard
         </p>
 
         {/* Tags */}
-        {product.tags.length > 0 && (
+        {product.tags && product.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {product.tags.slice(0, 3).map((tag) => (
               <span

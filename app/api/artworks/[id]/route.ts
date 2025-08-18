@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import Artwork from '@/models/Artwork'
 import mongoose from 'mongoose'
-import { verifyAdminToken } from '@/lib/auth'
+import { authenticateRequest, isAdmin } from '@/lib/auth'
 
 // GET /api/artworks/[id] - Get single artwork by ID
 export async function GET(
@@ -77,10 +77,10 @@ export async function PUT(
 ) {
   try {
     // Verify admin authentication
-    const adminVerification = await verifyAdminToken(request)
-    if (!adminVerification.success) {
+    const user = await authenticateRequest(request)
+    if (!user || !isAdmin(user)) {
       return NextResponse.json(
-        { error: adminVerification.error },
+        { error: 'Admin access required' },
         { status: 401 }
       )
     }
@@ -148,10 +148,10 @@ export async function DELETE(
 ) {
   try {
     // Verify admin authentication
-    const adminVerification = await verifyAdminToken(request)
-    if (!adminVerification.success) {
+    const user = await authenticateRequest(request)
+    if (!user || !isAdmin(user)) {
       return NextResponse.json(
-        { error: adminVerification.error },
+        { error: 'Admin access required' },
         { status: 401 }
       )
     }

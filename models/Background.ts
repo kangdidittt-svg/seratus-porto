@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose'
+import mongoose, { Document, Schema, Model } from 'mongoose'
 
 export interface IBackground extends Document {
   name: string
@@ -8,6 +8,11 @@ export interface IBackground extends Document {
   file_type?: string
   createdAt: Date
   updatedAt: Date
+}
+
+export interface IBackgroundModel extends Model<IBackground> {
+  getActive(): Promise<IBackground | null>
+  setActive(id: string): Promise<IBackground | null>
 }
 
 const BackgroundSchema = new Schema<IBackground>(
@@ -73,4 +78,4 @@ BackgroundSchema.statics.setActive = async function(id: string) {
   return this.findByIdAndUpdate(id, { is_active: true }, { new: true })
 }
 
-export default mongoose.models.Background || mongoose.model<IBackground>('Background', BackgroundSchema)
+export default (mongoose.models.Background as IBackgroundModel) || mongoose.model<IBackground, IBackgroundModel>('Background', BackgroundSchema)

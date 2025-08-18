@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface IProduct extends Document {
+  _id: string
   title: string
   description: string
   price: number
@@ -9,11 +10,14 @@ export interface IProduct extends Document {
   file_url: string
   watermark_url: string
   preview_images: string[]
-  tags: string[]
   downloads: number
   active: boolean
   createdAt: Date
   updatedAt: Date
+  // Virtual fields
+  finalPrice: number
+  discount: number
+  discountAmount: number
 }
 
 const ProductSchema = new Schema<IProduct>(
@@ -32,8 +36,11 @@ const ProductSchema = new Schema<IProduct>(
     },
     price: {
       type: Number,
-      required: [true, 'Sale price is required'],
-      min: [0, 'Price cannot be negative']
+      required: false,
+      min: [0, 'Price cannot be negative'],
+      default: function() {
+        return this.original_price
+      }
     },
     original_price: {
       type: Number,
@@ -43,7 +50,7 @@ const ProductSchema = new Schema<IProduct>(
     category: {
       type: String,
       required: [true, 'Category is required'],
-      enum: ['logo', 'branding', 'illustration', 'template', 'mockup', 'icon', 'other']
+      enum: ['Digital Art', 'Illustrations', 'Templates', 'Mockups', 'Icons', 'Fonts', 'Textures', 'Brushes', 'Other']
     },
     file_url: {
       type: String,
@@ -57,16 +64,7 @@ const ProductSchema = new Schema<IProduct>(
       type: [String],
       default: []
     },
-    tags: {
-      type: [String],
-      default: [],
-      validate: {
-        validator: function(v: string[]) {
-          return v.length <= 10
-        },
-        message: 'Cannot have more than 10 tags'
-      }
-    },
+
     downloads: {
       type: Number,
       default: 0,
@@ -84,24 +82,25 @@ const ProductSchema = new Schema<IProduct>(
   }
 )
 
-// Virtual for final price (same as price since price is already the sale price)
+// Virtual for final price (use price if set, otherwise original_price)
 ProductSchema.virtual('finalPrice').get(function() {
-  return this.price
+  return this.price || this.original_price
 })
 
 // Virtual for discount percentage
 ProductSchema.virtual('discount').get(function() {
-  if (this.original_price <= 0) return 0
+  if (this.original_price <= 0 || !this.price) return 0
   return Math.round(((this.original_price - this.price) / this.original_price) * 100)
 })
 
 // Virtual for discount amount
 ProductSchema.virtual('discountAmount').get(function() {
+  if (!this.price) return 0
   return Math.max(0, this.original_price - this.price)
 })
 
 // Index for better search and filtering
-ProductSchema.index({ title: 'text', description: 'text', tags: 'text' })
+ProductSchema.index({ title: 'text', description: 'text' })
 ProductSchema.index({ category: 1, active: 1 })
 ProductSchema.index({ price: 1 })
 ProductSchema.index({ downloads: -1 })

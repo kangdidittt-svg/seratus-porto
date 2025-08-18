@@ -4,6 +4,35 @@ import Order from '@/models/Order'
 import Product from '@/models/Product'
 import { authenticateRequest, isAdmin } from '@/lib/auth'
 
+// Helper function to send email notification
+async function sendOrderApprovalEmail(order: any, adminToken: string) {
+  try {
+    const emailData = {
+      to: order.customer_email,
+      subject: `Order Approved - ${order.product_id.title}`,
+      message: `Dear ${order.customer_name},\n\nGreat news! Your order has been approved and is ready for download.\n\nOrder Details:\n- Product: ${order.product_id.title}\n- Order ID: ${order._id}\n- Total Amount: $${order.total_amount}\n\nYour download will be available for 30 days from today.\n\nThank you for choosing Seratus Studio!`,
+      downloadLink: order.download_link
+    }
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/api/send-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminToken}`
+      },
+      body: JSON.stringify(emailData)
+    })
+
+    if (!response.ok) {
+      console.error('Failed to send email notification:', await response.text())
+    } else {
+      console.log('Email notification sent successfully to:', order.customer_email)
+    }
+  } catch (error) {
+    console.error('Error sending email notification:', error)
+  }
+}
+
 // GET /api/orders - Get all orders (Admin only) or user's orders
 export async function GET(request: NextRequest) {
   try {
@@ -170,7 +199,8 @@ export async function PUT(request: NextRequest) {
   try {
     await dbConnect()
     
-    // Authenticate user
+    // Authenticate user and get token
+    const token = request.headers.get('authorization')?.replace('Bearer ', '')
     const user = await authenticateRequest(request)
     if (!user || !isAdmin(user)) {
       return NextResponse.json(
@@ -228,6 +258,11 @@ export async function PUT(request: NextRequest) {
         order.product_id,
         { $inc: { downloads: order.quantity } }
       )
+      
+      // Send email notification to customer
+      if (token) {
+        await sendOrderApprovalEmail(order, token)
+      }
     }
     
     return NextResponse.json(

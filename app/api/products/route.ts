@@ -17,8 +17,6 @@ export async function GET(request: NextRequest) {
     const maxPrice = parseFloat(searchParams.get('maxPrice') || '999999')
     const sortBy = searchParams.get('sortBy') || 'createdAt'
     const sortOrder = searchParams.get('sortOrder') || 'desc'
-    const tags = searchParams.get('tags')?.split(',').filter(Boolean) || []
-    
     const skip = (page - 1) * limit
     
     // Build query
@@ -30,10 +28,6 @@ export async function GET(request: NextRequest) {
     
     if (category) {
       query.category = category
-    }
-    
-    if (tags.length > 0) {
-      query.tags = { $in: tags }
     }
     
     // Price range filter
@@ -61,7 +55,6 @@ export async function GET(request: NextRequest) {
     
     // Get filter options
     const categories = await Product.distinct('category', { active: true })
-    const allTags = await Product.distinct('tags', { active: true })
     const priceRange = await Product.aggregate([
       { $match: { active: true } },
       {
@@ -84,7 +77,6 @@ export async function GET(request: NextRequest) {
         },
         filters: {
           categories,
-          tags: allTags,
           priceRange: priceRange[0] || { minPrice: 0, maxPrice: 0 }
         }
       },
@@ -124,17 +116,19 @@ export async function POST(request: NextRequest) {
       file_url,
       watermark_url,
       preview_images,
-      tags,
       active
     } = body
     
     // Validation
-    if (!title || !description || !price || !original_price || !category || !file_url || !watermark_url) {
+    if (!title || !description || !original_price || !category || !file_url) {
       return NextResponse.json(
-        { error: 'Title, description, price, original_price, category, file_url, and watermark_url are required' },
+        { error: 'Title, description, original_price, category, and file_url are required' },
         { status: 400 }
       )
     }
+
+    // Use default watermark if not provided
+    const finalWatermarkUrl = watermark_url || '/watermarks/default-watermark.png'
     
     // Create product
     const product = new Product({
@@ -144,9 +138,8 @@ export async function POST(request: NextRequest) {
       original_price,
       category,
       file_url,
-      watermark_url,
+      watermark_url: finalWatermarkUrl,
       preview_images: preview_images || [],
-      tags: tags || [],
       active: active !== undefined ? active : true
     })
     

@@ -42,7 +42,7 @@ export default function HomePage() {
 
       const params = new URLSearchParams({
         page: pageNum.toString(),
-        limit: '12'
+        limit: '24'
       })
 
       const response = await fetch(`/api/artworks?${params}`)
@@ -128,7 +128,7 @@ export default function HomePage() {
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse rounded-2xl" />
               <MasonryGrid>
-                {Array.from({ length: 12 }).map((_, index) => (
+                {Array.from({ length: 24 }).map((_, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, scale: 0.8 }}

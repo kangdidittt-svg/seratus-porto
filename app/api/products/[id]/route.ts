@@ -30,14 +30,11 @@ export async function GET(
       )
     }
 
-    // Find related products based on category and tags
+    // Find related products based on category
     const relatedProducts = await Product.find({
       _id: { $ne: product._id },
       active: true,
-      $or: [
-        { category: product.category },
-        { tags: { $in: product.tags } }
-      ]
+      category: product.category
     })
     .limit(8)
     .select('-file_url') // Don't expose actual file URLs

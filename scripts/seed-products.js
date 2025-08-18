@@ -28,7 +28,7 @@ const ProductSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Category is required'],
-    enum: ['logo', 'branding', 'illustration', 'template', 'mockup', 'icon', 'other']
+    enum: ['Digital Art', 'Illustrations', 'Templates', 'Mockups', 'Icons', 'Fonts', 'Textures', 'Brushes', 'Other']
   },
   file_url: {
     type: String,
@@ -67,7 +67,7 @@ const sampleProducts = [
     description: 'Clean and modern logo design perfect for tech startups and digital companies. Includes vector files and multiple format variations.',
     price: 150000,
     discount: 10,
-    category: 'logo',
+    category: 'Digital Art',
     file_url: 'https://example.com/files/tech-logo.zip',
     watermark_url: 'https://example.com/previews/tech-logo-watermark.jpg',
     preview_images: [
@@ -75,7 +75,7 @@ const sampleProducts = [
       'https://example.com/previews/tech-logo-2.jpg',
       'https://example.com/previews/tech-logo-3.jpg'
     ],
-    tags: ['modern', 'tech', 'startup', 'minimal', 'professional'],
+
     downloads: 45,
     active: true
   },
@@ -84,14 +84,14 @@ const sampleProducts = [
     description: 'Complete branding package for restaurants including logo, menu design, and business card templates.',
     price: 250000,
     discount: 15,
-    category: 'branding',
+    category: 'Digital Art',
     file_url: 'https://example.com/files/restaurant-branding.zip',
     watermark_url: 'https://example.com/previews/restaurant-branding-watermark.jpg',
     preview_images: [
       'https://example.com/previews/restaurant-branding-1.jpg',
       'https://example.com/previews/restaurant-branding-2.jpg'
     ],
-    tags: ['restaurant', 'food', 'branding', 'package', 'menu'],
+
     downloads: 32,
     active: true
   },
@@ -100,7 +100,7 @@ const sampleProducts = [
     description: 'Collection of 20 abstract illustrations perfect for web design, presentations, and marketing materials.',
     price: 100000,
     discount: 0,
-    category: 'illustration',
+    category: 'Illustrations',
     file_url: 'https://example.com/files/abstract-illustrations.zip',
     watermark_url: 'https://example.com/previews/abstract-illustrations-watermark.jpg',
     preview_images: [
@@ -109,7 +109,7 @@ const sampleProducts = [
       'https://example.com/previews/abstract-illustrations-3.jpg',
       'https://example.com/previews/abstract-illustrations-4.jpg'
     ],
-    tags: ['abstract', 'illustration', 'web', 'design', 'colorful'],
+
     downloads: 78,
     active: true
   },
@@ -118,14 +118,14 @@ const sampleProducts = [
     description: 'Professional business card templates in various styles. Easy to customize with your own information.',
     price: 75000,
     discount: 20,
-    category: 'template',
+    category: 'Templates',
     file_url: 'https://example.com/files/business-card-templates.zip',
     watermark_url: 'https://example.com/previews/business-card-templates-watermark.jpg',
     preview_images: [
       'https://example.com/previews/business-card-templates-1.jpg',
       'https://example.com/previews/business-card-templates-2.jpg'
     ],
-    tags: ['business card', 'template', 'professional', 'corporate'],
+
     downloads: 156,
     active: true
   },
@@ -134,7 +134,7 @@ const sampleProducts = [
     description: 'High-quality mobile app mockups for iOS and Android. Perfect for showcasing your app designs.',
     price: 120000,
     discount: 5,
-    category: 'mockup',
+    category: 'Mockups',
     file_url: 'https://example.com/files/mobile-app-mockups.zip',
     watermark_url: 'https://example.com/previews/mobile-app-mockups-watermark.jpg',
     preview_images: [
@@ -142,7 +142,7 @@ const sampleProducts = [
       'https://example.com/previews/mobile-app-mockups-2.jpg',
       'https://example.com/previews/mobile-app-mockups-3.jpg'
     ],
-    tags: ['mockup', 'mobile', 'app', 'ios', 'android'],
+
     downloads: 89,
     active: true
   },
@@ -151,14 +151,14 @@ const sampleProducts = [
     description: 'Complete set of social media icons in multiple styles and formats. Includes all major platforms.',
     price: 50000,
     discount: 0,
-    category: 'icon',
+    category: 'Icons',
     file_url: 'https://example.com/files/social-media-icons.zip',
     watermark_url: 'https://example.com/previews/social-media-icons-watermark.jpg',
     preview_images: [
       'https://example.com/previews/social-media-icons-1.jpg',
       'https://example.com/previews/social-media-icons-2.jpg'
     ],
-    tags: ['icons', 'social media', 'web', 'ui', 'interface'],
+
     downloads: 234,
     active: true
   },
@@ -176,7 +176,7 @@ const sampleProducts = [
       'https://example.com/previews/ecommerce-template-3.jpg',
       'https://example.com/previews/ecommerce-template-4.jpg'
     ],
-    tags: ['ecommerce', 'website', 'template', 'responsive', 'modern'],
+
     downloads: 67,
     active: true
   },
@@ -193,7 +193,7 @@ const sampleProducts = [
       'https://example.com/previews/vintage-logos-2.jpg',
       'https://example.com/previews/vintage-logos-3.jpg'
     ],
-    tags: ['vintage', 'retro', 'logo', 'classic', 'artisanal'],
+
     downloads: 123,
     active: true
   },
@@ -202,14 +202,14 @@ const sampleProducts = [
     description: 'Comprehensive pack of infographic elements including charts, graphs, icons, and decorative elements.',
     price: 90000,
     discount: 8,
-    category: 'other',
+    category: 'Other',
     file_url: 'https://example.com/files/infographic-elements.zip',
     watermark_url: 'https://example.com/previews/infographic-elements-watermark.jpg',
     preview_images: [
       'https://example.com/previews/infographic-elements-1.jpg',
       'https://example.com/previews/infographic-elements-2.jpg'
     ],
-    tags: ['infographic', 'charts', 'graphs', 'data', 'visualization'],
+
     downloads: 198,
     active: true
   },
@@ -226,7 +226,7 @@ const sampleProducts = [
       'https://example.com/previews/minimalist-branding-2.jpg',
       'https://example.com/previews/minimalist-branding-3.jpg'
     ],
-    tags: ['minimalist', 'branding', 'clean', 'modern', 'simple'],
+
     downloads: 87,
     active: true
   }

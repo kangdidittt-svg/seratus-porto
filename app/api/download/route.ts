@@ -121,8 +121,8 @@ export async function POST(request: NextRequest) {
       const archive = archiver('zip', { zlib: { level: 9 } })
       
       // Handle archive events
-      const archivePromise = new Promise((resolve, reject) => {
-        output.on('close', resolve)
+      const archivePromise = new Promise<void>((resolve, reject) => {
+        output.on('close', () => resolve())
         archive.on('error', reject)
       })
       

@@ -6,27 +6,25 @@ import { Search, Filter, ShoppingCart, X, Plus, Minus, CreditCard, Package, Star
 import Image from 'next/image'
 import Header from '@/components/Header'
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard'
+import { IProduct } from '@/models/Product'
 
-interface Product {
+interface CartItem {
   _id: string
   title: string
   description: string
   price: number
   original_price?: number
+  finalPrice: number
   category: string
   watermark_url: string
   preview_images: string[]
-  tags: string[]
   downloads: number
   active: boolean
-}
-
-interface CartItem extends Product {
   quantity: number
 }
 
 interface ApiResponse {
-  products: Product[]
+  products: IProduct[]
   pagination: {
     page: number
     limit: number
@@ -35,7 +33,6 @@ interface ApiResponse {
   }
   filters: {
     categories: string[]
-    tags: string[]
     priceRange: {
       min: number
       max: number
@@ -44,7 +41,7 @@ interface ApiResponse {
 }
 
 export default function ShopPage() {
-  const [products, setProducts] = useState<Product[]>([])
+  const [products, setProducts] = useState<IProduct[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
@@ -131,7 +128,7 @@ export default function ShopPage() {
   }
 
   // Cart functions
-  const addToCart = (product: Product) => {
+  const addToCart = (product: IProduct) => {
     setCart(prev => {
       const existingItem = prev.find(item => item._id === product._id)
       if (existingItem) {

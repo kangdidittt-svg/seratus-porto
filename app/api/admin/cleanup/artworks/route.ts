@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { connectDB } from '@/lib/mongodb'
+import dbConnect from '@/lib/mongodb'
 import Artwork from '@/models/Artwork'
 import { cookies } from 'next/headers'
 import jwt from 'jsonwebtoken'
@@ -7,6 +7,8 @@ import User from '@/models/User'
 
 export async function DELETE(request: NextRequest) {
   try {
+    await dbConnect()
+    
     // Verify admin authentication
     const cookieStore = cookies()
     const token = cookieStore.get('token')?.value
@@ -28,7 +30,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    await connectDB()
+    // Database connection already established above
 
     // Check if user is admin
     const user = await User.findById(decoded.userId)

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { connectDB } from '@/lib/mongodb'
+import dbConnect from '@/lib/mongodb'
 import User from '@/models/User'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    await connectDB()
+    await dbConnect()
     
     const users = await User.find({}).select('-password').sort({ createdAt: -1 })
     
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    await connectDB()
+    await dbConnect()
     
     // Check if user already exists
     const existingUser = await User.findOne({
@@ -134,7 +134,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    await connectDB()
+    await dbConnect()
     
     // Prevent deleting the current admin user
     if (userId === decoded.userId) {

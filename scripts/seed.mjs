@@ -41,12 +41,16 @@ const ProductSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
   price: { type: Number, required: true },
+  original_price: { type: Number, required: true },
   discount: { type: Number, default: 0 },
-  category: { type: String, required: true },
+  category: { 
+    type: String, 
+    required: true,
+    enum: ['Digital Art', 'Illustrations', 'Templates', 'Mockups', 'Icons', 'Fonts', 'Textures', 'Brushes', 'Other']
+  },
   file_url: { type: String, required: true },
   watermark_url: { type: String, required: true },
   preview_images: [{ type: String }],
-  tags: [{ type: String }],
   downloads: { type: Number, default: 0 },
   active: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },
@@ -251,7 +255,8 @@ const products = [
   {
     title: 'Premium Digital Art Pack #1',
     description: 'Collection of 10 high-resolution digital artworks perfect for commercial use. Includes PSD files and various formats.',
-    price: 49.99,
+    price: 39.99,
+    original_price: 49.99,
     discount: 20,
     category: 'Digital Art',
     file_url: 'https://example.com/downloads/art-pack-1.zip',
@@ -261,23 +266,22 @@ const products = [
       'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
       'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop'
     ],
-    tags: ['digital-art', 'premium', 'commercial', 'psd'],
     downloads: 156,
     active: true
   },
   {
     title: 'Cyberpunk UI Elements',
     description: 'Futuristic UI elements and components for web and app design. Includes Figma and Sketch files.',
-    price: 29.99,
+    price: 25.49,
+    original_price: 29.99,
     discount: 15,
-    category: 'UI/UX',
+    category: 'Templates',
     file_url: 'https://example.com/downloads/cyberpunk-ui.zip',
     watermark_url: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
     preview_images: [
       'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
       'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop'
     ],
-    tags: ['ui-ux', 'cyberpunk', 'figma', 'sketch'],
     downloads: 89,
     active: true
   },
@@ -285,47 +289,47 @@ const products = [
     title: 'Minimalist Logo Templates',
     description: 'Clean and modern logo templates for various industries. Vector files included.',
     price: 19.99,
+    original_price: 19.99,
     discount: 0,
-    category: 'Logo Design',
+    category: 'Templates',
     file_url: 'https://example.com/downloads/logo-templates.zip',
     watermark_url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300&fit=crop',
     preview_images: [
       'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300&fit=crop',
       'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=300&fit=crop'
     ],
-    tags: ['logo', 'minimalist', 'vector', 'templates'],
     downloads: 234,
     active: true
   },
   {
     title: 'Abstract Background Collection',
     description: 'High-quality abstract backgrounds for presentations, websites, and print materials.',
-    price: 15.99,
+    price: 11.99,
+    original_price: 15.99,
     discount: 25,
-    category: 'Backgrounds',
+    category: 'Textures',
     file_url: 'https://example.com/downloads/abstract-backgrounds.zip',
     watermark_url: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=300&fit=crop',
     preview_images: [
       'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=300&fit=crop',
       'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop'
     ],
-    tags: ['backgrounds', 'abstract', 'high-quality', 'print'],
     downloads: 312,
     active: true
   },
   {
     title: 'Photography Lightroom Presets',
     description: 'Professional Lightroom presets for portrait and landscape photography.',
-    price: 24.99,
+    price: 17.49,
+    original_price: 24.99,
     discount: 30,
-    category: 'Photography',
+    category: 'Other',
     file_url: 'https://example.com/downloads/lightroom-presets.zip',
     watermark_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
     preview_images: [
       'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
       'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300&fit=crop'
     ],
-    tags: ['photography', 'lightroom', 'presets', 'professional'],
     downloads: 178,
     active: true
   }

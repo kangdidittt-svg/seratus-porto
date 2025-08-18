@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import DownloadManager from '@/components/DownloadManager'
+import { IProduct } from '@/models/Product'
 
 interface User {
   _id: string
@@ -45,27 +46,13 @@ interface Artwork {
   createdAt: string
 }
 
-interface Product {
-  _id: string
-  title: string
-  description: string
-  price: number
-  original_price: number
-  category: string
-  preview_images: string[]
-  tags: string[]
-  downloads: number
-  active: boolean
-  createdAt: string
-}
-
 interface Order {
   _id: string
   customer_name: string
   customer_email: string
   customer_phone: string
   customer_address: string
-  product_id: Product
+  product_id: IProduct
   quantity: number
   total_amount: number
   payment_status: 'pending' | 'paid' | 'failed'
@@ -92,7 +79,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [stats, setStats] = useState<Stats | null>(null)
   const [artworks, setArtworks] = useState<Artwork[]>([])
-  const [products, setProducts] = useState<Product[]>([])
+  const [products, setProducts] = useState<IProduct[]>([])
   const [orders, setOrders] = useState<Order[]>([])  
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [showOrderModal, setShowOrderModal] = useState(false)
@@ -189,6 +176,16 @@ export default function AdminDashboard() {
     }
   }
 
+  const fetchOrders = async () => {
+    try {
+      const response = await fetch('/api/orders?limit=20')
+      const data = await response.json()
+      setOrders(data.orders || [])
+    } catch (error) {
+      console.error('Error fetching orders:', error)
+    }
+  }
+
   const handleLogout = async () => {
     try {
       await fetch('/api/auth', {
@@ -233,12 +230,13 @@ export default function AdminDashboard() {
     if (!confirm('Apakah Anda yakin ingin menerima pesanan ini?')) return
 
     try {
+      // Update order status
       const response = await fetch('/api/orders', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           id: orderId, 
-          delivery_status: 'processing',
+          delivery_status: 'delivered',
           payment_status: 'paid'
         }),
         credentials: 'include'
@@ -247,7 +245,30 @@ export default function AdminDashboard() {
       const data = await response.json()
 
       if (response.ok) {
-        setSuccess('Pesanan berhasil diterima!')
+        // Send email notification to customer
+        try {
+          const order = orders.find(o => o._id === orderId)
+          if (order) {
+            const token = localStorage.getItem('token')
+            await fetch('/api/send-email', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                to: order.customer_email,
+                subject: 'Pesanan Anda Telah Dikonfirmasi - Seratus Studio',
+                message: `Halo ${order.customer_name},\n\nPesanan Anda untuk "${order.product_id.title}" telah dikonfirmasi dan siap untuk diunduh.\n\nTerima kasih telah berbelanja di Seratus Studio!`
+              })
+            })
+          }
+        } catch (emailError) {
+          console.error('Email notification error:', emailError)
+          // Don't fail the order update if email fails
+        }
+
+        setSuccess('Pesanan berhasil diterima dan email notifikasi telah dikirim!')
         setTimeout(() => setSuccess(''), 3000)
         loadDashboardData()
       } else {
@@ -1049,7 +1070,6 @@ export default function AdminDashboard() {
                   <span className={`inline-block px-3 py-2 rounded-lg text-sm font-medium ${
                     selectedOrder.delivery_status === 'delivered' ? 'bg-green-500/20 text-green-400' :
                     selectedOrder.delivery_status === 'processing' ? 'bg-blue-500/20 text-blue-400' :
-                    selectedOrder.delivery_status === 'failed' ? 'bg-red-500/20 text-red-400' :
                     'bg-yellow-500/20 text-yellow-400'
                   }`}>
                     {selectedOrder.delivery_status}
@@ -1335,7 +1355,7 @@ export default function AdminDashboard() {
                 <label className="block text-sm font-medium text-white/70 mb-1">Role</label>
                 <select
                   value={newUserForm.role}
-                  onChange={(e) => setNewUserForm(prev => ({ ...prev, role: e.target.value }))}
+                  onChange={(e) => setNewUserForm(prev => ({ ...prev, role: e.target.value as 'user' | 'admin' }))}
                   className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="user" className="bg-gray-800 text-white">User</option>
