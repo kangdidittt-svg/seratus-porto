@@ -7,10 +7,13 @@ import { authenticateRequest, isAdmin } from '@/lib/auth'
 // Helper function to send email notification
 async function sendOrderApprovalEmail(order: any, adminToken: string) {
   try {
+    // Get product title safely
+    const productTitle = order.product_id?.title || order.product_name || 'Your Product'
+    
     const emailData = {
       to: order.customer_email,
-      subject: `Order Approved - ${order.product_id.title}`,
-      message: `Dear ${order.customer_name},\n\nGreat news! Your order has been approved and is ready for download.\n\nOrder Details:\n- Product: ${order.product_id.title}\n- Order ID: ${order._id}\n- Total Amount: $${order.total_amount}\n\nYour download will be available for 30 days from today.\n\nThank you for choosing Seratus Studio!`,
+      subject: `Order Approved - ${productTitle}`,
+      message: `Dear ${order.customer_name},\n\nGreat news! Your order has been approved and is ready for download.\n\nOrder Details:\n- Product: ${productTitle}\n- Order ID: ${order._id}\n- Total Amount: $${order.total_amount}\n\nYour download will be available for 30 days from today.\n\nThank you for choosing Seratus Studio!`,
       downloadLink: order.download_link
     }
 

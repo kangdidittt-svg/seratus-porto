@@ -1,0 +1,107 @@
+{
+  "info": {
+    "name": "Send Email API Test",
+    "description": "Contoh request untuk testing endpoint /api/send-email",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Send Email with File Link",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"to\": \"customer@example.com\",\n  \"subject\": \"File Siap Diunduh\",\n  \"fileLink\": \"https://drive.google.com/file/d/1234567890abcdef/view?usp=sharing\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/send-email",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "send-email"
+          ]
+        },
+        "description": "Mengirim email dengan file link Google Drive"
+      },
+      "response": []
+    },
+    {
+      "name": "Send Email without File Link",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"to\": \"customer@example.com\",\n  \"subject\": \"Terima Kasih\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/send-email",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "send-email"
+          ]
+        },
+        "description": "Mengirim email tanpa file link (hanya pesan standar)"
+      },
+      "response": []
+    },
+    {
+      "name": "Send Email with Admin Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_ADMIN_JWT_TOKEN_HERE",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"to\": \"customer@example.com\",\n  \"subject\": \"File Premium Siap Diunduh\",\n  \"fileLink\": \"https://drive.google.com/file/d/premium123456/view?usp=sharing\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/send-email",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "send-email"
+          ]
+        },
+        "description": "Mengirim email dengan autentikasi admin token"
+      },
+      "response": []
+    }
+  ]
+}

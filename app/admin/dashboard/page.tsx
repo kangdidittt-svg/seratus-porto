@@ -164,12 +164,6 @@ export default function AdminDashboard() {
         const response = await fetch('/api/products?limit=20')
         const data = await response.json()
         setProducts(data.products || [])
-      } else if (activeTab === 'orders') {
-        const response = await fetch('/api/orders?limit=20')
-        const data = await response.json()
-        setOrders(data.orders || [])
-      } else if (activeTab === 'users') {
-        loadUsers()
       }
     } catch (error) {
       console.error('Error loading data:', error)
@@ -434,11 +428,8 @@ export default function AdminDashboard() {
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'artworks', label: 'Artworks', icon: Image },
-    { id: 'products', label: 'Products', icon: Package },
-    { id: 'orders', label: 'Orders', icon: ShoppingBag },
-    { id: 'users', label: 'Users', icon: Users },
-    { id: 'backgrounds', label: 'Backgrounds', icon: Monitor }
+    { id: 'artworks', label: 'Kelola Karya', icon: Image },
+    { id: 'products', label: 'Kelola Produk', icon: Package }
   ]
 
   return (
@@ -466,19 +457,11 @@ export default function AdminDashboard() {
                 View Site
               </button>
               <button
-                onClick={clearAllData}
-                className="flex items-center space-x-2 text-red-400 hover:text-red-300 transition-all duration-300 px-4 py-2 rounded-lg hover:bg-white/10"
-                title="Hapus semua data produk dan karya"
-              >
-                <Database size={18} />
-                <span>Clear All</span>
-              </button>
-              <button
-                onClick={() => router.push('/settings')}
+                onClick={() => router.push('/admin/settings')}
                 className="flex items-center space-x-2 text-white/70 hover:text-white transition-all duration-300 px-4 py-2 rounded-lg hover:bg-white/10"
               >
                 <Settings size={18} />
-                <span>Settings</span>
+                <span>Pengaturan</span>
               </button>
               <button
                 onClick={handleLogout}
@@ -766,7 +749,10 @@ export default function AdminDashboard() {
                           <button className="text-primary-400 hover:text-primary-300 transition-colors">
                             <Eye size={16} />
                           </button>
-                          <button className="text-blue-400 hover:text-blue-300 transition-colors">
+                          <button 
+                            onClick={() => router.push(`/admin/products/edit/${product._id}`)}
+                            className="text-blue-400 hover:text-blue-300 transition-colors"
+                          >
                             <Edit size={16} />
                           </button>
                           <button 
@@ -787,210 +773,7 @@ export default function AdminDashboard() {
             </motion.div>
           )}
 
-          {/* Orders Tab */}
-          {activeTab === 'orders' && (
-            <motion.div
-              key="orders"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-6"
-            >
-              <h2 className="text-2xl font-bold text-white">Orders Management</h2>
-              
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-white/5">
-                      <tr>
-                        <th className="text-left p-4 text-white/70">Customer</th>
-                        <th className="text-left p-4 text-white/70">Product</th>
-                        <th className="text-left p-4 text-white/70">Amount</th>
-                        <th className="text-left p-4 text-white/70">Payment</th>
-                        <th className="text-left p-4 text-white/70">Proof</th>
-                        <th className="text-left p-4 text-white/70">Delivery</th>
-                        <th className="text-left p-4 text-white/70">Date</th>
-                        <th className="text-left p-4 text-white/70">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {orders.map((order) => (
-                        <tr key={order._id} className="border-t border-white/10">
-                          <td className="p-4">
-                            <div>
-                              <p className="text-white font-medium">{order.customer_name}</p>
-                              <p className="text-white/60 text-sm">{order.customer_email}</p>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <p className="text-white">{order.product_id?.title || 'N/A'}</p>
-                          </td>
-                          <td className="p-4">
-                            <p className="text-white font-medium">Rp {order.total_amount.toLocaleString('id-ID')}</p>
-                          </td>
-                          <td className="p-4">
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              order.payment_status === 'paid' ? 'bg-green-500/20 text-green-400' :
-                              order.payment_status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                              'bg-red-500/20 text-red-400'
-                            }`}>
-                              {order.payment_status}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            {order.payment_proof ? (
-                              <button
-                                onClick={() => window.open(order.payment_proof!, '_blank')}
-                                className="text-blue-400 hover:text-blue-300 text-xs px-2 py-1 rounded bg-blue-500/20 transition-colors"
-                              >
-                                View Proof
-                              </button>
-                            ) : (
-                              <span className="text-white/40 text-xs">No proof</span>
-                            )}
-                          </td>
-                          <td className="p-4">
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              order.delivery_status === 'delivered' ? 'bg-green-500/20 text-green-400' :
-                              order.delivery_status === 'processing' ? 'bg-blue-500/20 text-blue-400' :
-                              'bg-yellow-500/20 text-yellow-400'
-                            }`}>
-                              {order.delivery_status}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <span className="text-white/50 text-sm">
-                              {new Date(order.createdAt).toLocaleDateString()}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex space-x-2">
-                              <button 
-                                onClick={() => {
-                                  setSelectedOrder(order)
-                                  setShowOrderModal(true)
-                                }}
-                                className="text-primary-400 hover:text-primary-300 transition-colors"
-                                title="Lihat Detail"
-                              >
-                                <Eye size={16} />
-                              </button>
-                              {order.delivery_status === 'pending' && (
-                                <button 
-                                  onClick={() => acceptOrder(order._id)}
-                                  className="text-green-400 hover:text-green-300 transition-colors"
-                                  title="Terima Pesanan"
-                                >
-                                  <Check size={16} />
-                                </button>
-                              )}
-                              <button 
-                                onClick={() => {
-                                  setEditingOrder(order)
-                                  setShowEditModal(true)
-                                }}
-                                className="text-blue-400 hover:text-blue-300 transition-colors"
-                                title="Edit Pesanan"
-                              >
-                                <Edit size={16} />
-                              </button>
-                              <button 
-                                onClick={() => deleteItem('orders', order._id)}
-                                className="text-red-400 hover:text-red-300 transition-colors"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </motion.div>
-          )}
 
-          {/* Users Tab */}
-          {activeTab === 'users' && (
-            <motion.div
-              key="users"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-6"
-            >
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-white">Users Management</h2>
-                <button
-                  onClick={() => setShowAddUserModal(true)}
-                  className="flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-all duration-300"
-                >
-                  <Plus size={18} />
-                  <span>Add User</span>
-                </button>
-              </div>
-              
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-white/5">
-                      <tr>
-                        <th className="text-left p-4 text-white/70">Username</th>
-                        <th className="text-left p-4 text-white/70">Email</th>
-                        <th className="text-left p-4 text-white/70">Role</th>
-                        <th className="text-left p-4 text-white/70">Created</th>
-                        <th className="text-left p-4 text-white/70">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {users.map((userItem) => (
-                        <tr key={userItem._id} className="border-t border-white/10">
-                          <td className="p-4">
-                            <p className="text-white font-medium">{userItem.username}</p>
-                          </td>
-                          <td className="p-4">
-                            <p className="text-white">{userItem.email}</p>
-                          </td>
-                          <td className="p-4">
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              userItem.role === 'admin' ? 'bg-red-500/20 text-red-400' :
-                              'bg-blue-500/20 text-blue-400'
-                            }`}>
-                              {userItem.role}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <p className="text-white/70 text-sm">
-                              {new Date(userItem.createdAt || '').toLocaleDateString('id-ID')}
-                            </p>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={() => deleteUser(userItem._id)}
-                                className="text-red-400 hover:text-red-300 transition-colors"
-                                title="Delete User"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {users.length === 0 && (
-                        <tr>
-                          <td colSpan={5} className="p-8 text-center text-white/50">
-                            No users found
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </motion.div>
-          )}
         </AnimatePresence>
       </div>
 
